@@ -42,7 +42,15 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
   cursor: pointer; font-weight: 700; font-family: 'Noto Sans KR', sans-serif;
   transition: all 0.2s;
 }
-.help-btn:hover { background: #e8f4fd; border-color: var(--blue); }
+.share-btn {
+  position: absolute; left: 0; top: 36px;
+  background: linear-gradient(135deg, #4a9eff, #1a6fd4);
+  border: none; border-radius: 99px;
+  padding: 6px 16px; font-size: 0.78rem; color: white;
+  cursor: pointer; font-weight: 700; font-family: 'Noto Sans KR', sans-serif;
+  transition: all 0.2s;
+}
+.share-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(74,158,255,0.4); }
 
 /* STATUS BAR */
 .status-bar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
@@ -541,6 +549,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
   <header>
     <div class="logo">CREATURE WORLD</div>
     <button class="help-btn" onclick="showModal('helpModal')">게임 설명 ?</button>
+    <button class="share-btn" onclick="shareLink()">🔗 친구 초대</button>
   </header>
 
   <div class="status-bar">
@@ -970,7 +979,14 @@ function closeZoom(e){ if(e.target.id==='zoomOverlay') document.getElementById('
 function closeZoomBtn(){ document.getElementById('zoomOverlay').classList.remove('show'); }
 
 // 모달
-function showModal(id){document.getElementById(id).classList.add('show');}
+function shareLink(){
+  const url = 'https://creature-world-3.github.io/creature-world/creature-world.html';
+  navigator.clipboard.writeText(url).then(()=>{
+    showToast('🔗 링크가 복사됐어요! 친구에게 공유해보세요 🐧🦊🐹');
+  }).catch(()=>{
+    prompt('아래 링크를 복사해서 친구에게 보내주세요!', url);
+  });
+}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 function closeModalOut(e,id){if(e.target.id===id)closeModal(id);}
 
