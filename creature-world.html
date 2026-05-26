@@ -621,6 +621,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
         <button class="col-filter-btn active" onclick="setFilter('all',this)">전체</button>
         <button class="col-filter-btn" onclick="setFilter('rumi',this)">루미</button>
         <button class="col-filter-btn" onclick="setFilter('toto',this)">토토리</button>
+        <button class="col-filter-btn" onclick="setFilter('pin',this)">핀초코</button>
         <button class="col-filter-btn" onclick="setFilter('n',this)">N</button>
         <button class="col-filter-btn" onclick="setFilter('r',this)">R</button>
         <button class="col-filter-btn" onclick="setFilter('sr',this)">SR</button>
@@ -702,7 +703,11 @@ const CARDS = [
   { id:'toto_r',  name:'토토리', slogan:'"이것만 뛰면 만두 10개..!"',     desc:'', grade:'r',  img:'레어햄스터.png' },
   { id:'toto_sr', name:'토토리', slogan:'"잡았다! 오늘 저녁은 생선이다!"', desc:'', grade:'sr', img:'슈퍼레어햄스터.png' },
   { id:'toto_ur', name:'토토리', slogan:'"해바라기씨는 너한테 줄 건 없으ㄹ으어어.."', desc:'', grade:'ur', img:'울트라레어햄스터.png' },
-  { id:'toto_lg', name:'토토리', slogan:'"짠— 놀랐지?"',                  desc:'', grade:'lg', img:'레전드햄스터.png' },
+  { id:'pin_n',  name:'핀초코', slogan:'"첨벙첨벙~ 물이 최고야!"',      desc:'', grade:'n',  img:'노말펭귄.png' },
+  { id:'pin_r',  name:'핀초코', slogan:'"아! 머리깨져-!"',              desc:'', grade:'r',  img:'레어펭귄.png' },
+  { id:'pin_sr', name:'핀초코', slogan:'"호이야 후이야..."',             desc:'', grade:'sr', img:'슈퍼레어펭귄.png' },
+  { id:'pin_ur', name:'핀초코', slogan:'"데 데... 대머리야..!"',        desc:'', grade:'ur', img:'울트라레어펭귄.png' },
+  { id:'pin_lg', name:'핀초코', slogan:'"눈을 뜨니.. 여기가 어딩교"',  desc:'', grade:'lg', img:'레전드펭귄.png' },
 ];
 
 const GRADE_LABEL = {n:'N',r:'R',sr:'SR',ur:'UR',lg:'LEGEND'};
@@ -825,6 +830,7 @@ function renderGrid(){
   let filtered = CARDS;
   if(currentFilter === 'rumi') filtered = CARDS.filter(c=>c.id.startsWith('rumi'));
   else if(currentFilter === 'toto') filtered = CARDS.filter(c=>c.id.startsWith('toto'));
+  else if(currentFilter === 'pin') filtered = CARDS.filter(c=>c.id.startsWith('pin'));
   else if(['n','r','sr','ur','lg'].includes(currentFilter)) filtered = CARDS.filter(c=>c.grade===currentFilter);
 
   const owned = filtered.filter(c=>state.collection[c.id]>0);
