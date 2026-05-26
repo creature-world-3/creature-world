@@ -557,7 +557,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
     <div class="status-card">
       <div class="status-label">접속 시간</div>
       <div class="status-val" id="sessionTime">0</div>
-      <div class="status-sub">분 (3시간 달성시 +1장)</div>
+      <div class="status-sub">분 (1시간 달성시 +1장)</div>
       <div class="prog-wrap"><div class="prog-track"><div class="prog-fill" id="sessionProg" style="width:0%"></div></div></div>
     </div>
     <div class="status-card" style="cursor:pointer" onclick="showModal('probModal')">
@@ -602,7 +602,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
       </div>
 
       <div class="click-section">
-        <div class="click-label">클릭 뽑기 (하루 1회 · 1000번)</div>
+        <div class="click-label">클릭 뽑기 (하루 1회 · 500번)</div>
         <button class="click-btn" onclick="handleClick(event)" id="clickBtn">🐾</button>
         <div class="click-count-text">
           <span id="clickText">0 / 1000</span>
@@ -679,9 +679,9 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
 <div class="modal-overlay" id="helpModal" onclick="closeModalOut(event,'helpModal')">
   <div class="modal">
     <div class="modal-title">🌍 게임 설명</div>
-    <div class="help-item"><div class="help-icon">📅</div><div><div class="help-text-title">매일 뽑기권</div><div class="help-text-desc">매일 처음 접속하면 뽑기권 5장을 드려요!</div></div></div>
-    <div class="help-item"><div class="help-icon">⏰</div><div><div class="help-text-title">3시간 접속 보너스</div><div class="help-text-desc">오늘 3시간 이상 접속하면 추가로 1장을 드려요.</div></div></div>
-    <div class="help-item"><div class="help-icon">🐾</div><div><div class="help-text-title">클릭 뽑기</div><div class="help-text-desc">하루에 1번, 1000번 클릭하면 뽑기권 1장을 드려요!</div></div></div>
+    <div class="help-item"><div class="help-icon">📅</div><div><div class="help-text-title">매일 뽑기권</div><div class="help-text-desc">매일 처음 접속하면 뽑기권 10장을 드려요!</div></div></div>
+    <div class="help-item"><div class="help-icon">⏰</div><div><div class="help-text-title">1시간 접속 보너스</div><div class="help-text-desc">오늘 1시간 이상 접속하면 추가로 1장을 드려요.</div></div></div>
+    <div class="help-item"><div class="help-icon">🐾</div><div><div class="help-text-title">클릭 뽑기</div><div class="help-text-desc">하루에 1번, 500번 클릭하면 뽑기권 1장을 드려요!</div></div></div>
     <div class="help-item"><div class="help-icon">🎴</div><div><div class="help-text-title">카드 수집</div><div class="help-text-desc">카드를 수집북에 모아보세요. 카드를 클릭하면 크게 볼 수 있어요!</div></div></div>
     <div class="help-item"><div class="help-icon">🔄</div><div><div class="help-text-title">카드 교환</div><div class="help-text-desc">같은 카드가 10장 이상이면 뽑기권 1장으로 교환할 수 있어요!</div></div></div>
     <div class="help-item"><div class="help-icon">💾</div><div><div class="help-text-title">자동 저장</div><div class="help-text-desc">수집한 카드는 이 기기에 자동으로 저장돼요.</div></div></div>
@@ -725,8 +725,8 @@ function loadState() {
   if (state.sessionDate !== today) { state.sessionMinutes=0; state.sessionBonus=false; state.sessionDate=today; }
   if (state.lastLogin !== today) {
     state.lastLogin=today;
-    state.tickets+=5;
-    setTimeout(()=>showToast('📅 매일 접속 보너스! 뽑기권 +5장'), 600);
+    state.tickets+=10;
+    setTimeout(()=>showToast('📅 매일 접속 보너스! 뽑기권 +10장'), 600);
   }
   saveState();
 }
@@ -864,14 +864,14 @@ function handleClick(e){
   el.className='float-num'; el.textContent='+1';
   el.style.left=(e.clientX-15)+'px'; el.style.top=(e.clientY-20)+'px';
   document.body.appendChild(el); setTimeout(()=>el.remove(),800);
-  if(state.clickCount>=1000){state.clickDone=true;state.tickets++;showToast('🎉 1000번 달성! 뽑기권 +1장!');}
+  if(state.clickCount>=500){state.clickDone=true;state.tickets++;showToast('🎉 500번 달성! 뽑기권 +1장!');}
   saveState(); updateUI();
 }
 
 // 세션 타이머
 setInterval(()=>{
   state.sessionMinutes=(state.sessionMinutes||0)+1;
-  if(state.sessionMinutes>=180&&!state.sessionBonus){state.sessionBonus=true;state.tickets++;showToast('⏰ 3시간 접속 달성! 뽑기권 +1장!');}
+  if(state.sessionMinutes>=60&&!state.sessionBonus){state.sessionBonus=true;state.tickets++;showToast('⏰ 1시간 접속 달성! 뽑기권 +1장!');}
   saveState(); updateUI();
 },60000);
 
@@ -883,12 +883,12 @@ function updateUI(){
   document.getElementById('collectedCount').textContent=unique;
   document.getElementById('collectedSub').textContent='/ '+CARDS.length+' 종류';
   document.getElementById('colCountBadge').textContent=unique+' / '+CARDS.length;
-  const mins=Math.min(state.sessionMinutes||0,180);
+  const mins=Math.min(state.sessionMinutes||0,60);
   document.getElementById('sessionTime').textContent=mins;
-  document.getElementById('sessionProg').style.width=(mins/180*100)+'%';
-  const clicks=Math.min(state.clickCount,1000);
-  document.getElementById('clickText').textContent=clicks+' / 1000';
-  document.getElementById('clickProg').style.width=(clicks/10)+'%';
+  document.getElementById('sessionProg').style.width=(mins/60*100)+'%';
+  const clicks=Math.min(state.clickCount,500);
+  document.getElementById('clickText').textContent=clicks+' / 500';
+  document.getElementById('clickProg').style.width=(clicks/5)+'%';
   document.getElementById('clickDoneText').style.display=state.clickDone?'':'none';
   document.getElementById('clickText').style.display=state.clickDone?'none':'';
   document.getElementById('clickBtn').disabled=state.clickDone;
