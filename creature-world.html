@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CREATURE WORLD</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+:root {
+  --sky: #e8f4fd; --sky2: #d0eaf8;
+  --blue: #4a9eff; --blue-dark: #1a6fd4;
+  --text: #1a2a3a; --muted: #7a9ab5; --white: #ffffff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: linear-gradient(160deg, #e8f6ff 0%, #f0f9ff 40%, #e0f0ff 100%);
+  min-height: 100vh; color: var(--text);
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 30% at 15% 20%, rgba(255,255,255,0.7) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 25% at 80% 15%, rgba(255,255,255,0.6) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 20% at 50% 80%, rgba(200,230,255,0.4) 0%, transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+.wrap { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: 0 20px 60px; }
+
+/* HEADER */
+header { text-align: center; padding: 32px 0 20px; position: relative; }
+.logo {
+  font-family: 'Nunito', sans-serif; font-size: 2.6rem; font-weight: 900; letter-spacing: 3px;
+  background: linear-gradient(135deg, #2196f3, #4a9eff, #00bcd4);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.help-btn {
+  position: absolute; right: 0; top: 36px;
+  background: white; border: 1.5px solid #c0ddf5; border-radius: 99px;
+  padding: 6px 16px; font-size: 0.78rem; color: var(--blue-dark);
+  cursor: pointer; font-weight: 700; font-family: 'Noto Sans KR', sans-serif;
+  transition: all 0.2s;
+}
+.help-btn:hover { background: #e8f4fd; border-color: var(--blue); }
+
+/* STATUS BAR */
+.status-bar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.status-card {
+  flex: 1; min-width: 140px; background: white; border-radius: 16px;
+  padding: 14px 18px; border: 1.5px solid #d0eaf8;
+  display: flex; flex-direction: column; gap: 4px;
+  box-shadow: 0 2px 12px rgba(74,158,255,0.08);
+}
+.status-label { font-size: 0.7rem; color: var(--muted); font-weight: 700; letter-spacing: 0.5px; }
+.status-val { font-family: 'Nunito', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--blue-dark); line-height: 1; }
+.status-sub { font-size: 0.68rem; color: var(--muted); }
+.prog-wrap { margin-top: 6px; }
+.prog-track { height: 6px; background: #e0f0ff; border-radius: 99px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #4a9eff, #00bcd4); transition: width 0.3s; }
+
+/* MAIN */
+.main-area { display: flex; gap: 20px; align-items: flex-start; }
+
+/* DRAW SECTION */
+.draw-section { flex: 0 0 260px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.draw-title { font-size: 0.78rem; font-weight: 700; color: var(--muted); letter-spacing: 1px; }
+
+/* 뒷면 카드 - 조커 없이 깔끔하게 */
+.draw-card-wrap { width: 240px; height: 360px; perspective: 1000px; cursor: pointer; margin: 0 auto; }
+.draw-card-inner {
+  width: 100%; height: 100%; position: relative;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(.4,0,.2,1);
+  -webkit-transition: -webkit-transform 0.7s cubic-bezier(.4,0,.2,1);
+}
+.draw-card-inner.flipped { 
+  transform: rotateY(180deg); 
+  -webkit-transform: rotateY(180deg);
+}
+.draw-face { 
+  position: absolute; inset: 0; border-radius: 18px; 
+  backface-visibility: hidden; 
+  -webkit-backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+}
+
+.draw-back {
+  background: linear-gradient(145deg, #1565c0 0%, #1e88e5 35%, #29b6f6 70%, #00acc1 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  box-shadow: 0 10px 40px rgba(74,158,255,0.4);
+  border: 3px solid rgba(255,255,255,0.25);
+  position: relative; overflow: hidden;
+  width: 100%; height: 100%;
+}
+/* 패턴 - 마름모 반복 */
+.draw-back::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px,
+    transparent 1px, transparent 12px
+  ),
+  repeating-linear-gradient(
+    -45deg,
+    rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px,
+    transparent 1px, transparent 12px
+  );
+}
+/* 안쪽 테두리 */
+.draw-back::after {
+  content: '';
+  position: absolute; inset: 10px;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+}
+.draw-back-logo {
+  font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 1.05rem;
+  color: rgba(255,255,255,0.85); letter-spacing: 2px; position: relative; z-index: 1;
+}
+.draw-back-hint {
+  font-size: 0.82rem; color: rgba(255,255,255,0.65);
+  position: relative; z-index: 1;
+  animation: hintBlink 1.5s ease-in-out infinite;
+}
+@keyframes hintBlink { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+/* 카드 앞면 */
+.draw-front {
+  transform: rotateY(180deg); 
+  -webkit-transform: rotateY(180deg);
+  border-radius: 18px; overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.18);
+  width: 100%; height: 100%;
+}
+.draw-front .card-header {
+  position: absolute; top: 0; left: 0; right: 0; padding: 9px 11px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.65), transparent);
+  z-index: 2; border-radius: 18px 18px 0 0;
+}
+.draw-front .card-name { font-family:'Nunito',sans-serif; font-weight:900; font-size:16px; color:white; text-shadow:0 1px 4px rgba(0,0,0,0.8); }
+.draw-front .grade-badge { font-size:12px; font-weight:900; padding:3px 9px; border-radius:99px; }
+.draw-front .card-art { flex:1; position:relative; overflow:hidden; }
+.draw-front .card-art img { width:100%; height:100%; object-fit:cover; object-position:center 30%; }
+.draw-front .card-footer {
+  position:absolute; bottom:0; left:0; right:0;
+  padding:30px 14px 14px;
+  background:linear-gradient(to top, rgba(0,0,0,0.88), transparent);
+  z-index:2;
+}
+.draw-front .card-sep { height:1px; margin-bottom:8px; }
+.draw-front .card-slogan { font-size:11px; color:rgba(255,255,255,0.55); font-style:italic; margin-bottom:4px; }
+.draw-front .card-desc { font-size:11.5px; color:rgba(255,255,255,0.88); line-height:1.5; }
+
+/* 등급별 스타일 */
+.grade-n  .grade-badge { background:rgba(80,80,80,0.9); color:#ccc; }
+.grade-r  .grade-badge { background:rgba(20,50,110,0.92); color:#7eb8ff; border:1px solid #4a9eff; }
+.grade-r  .card-sep { background:linear-gradient(90deg,transparent,#4a9eff,transparent); }
+.grade-sr .grade-badge { background:rgba(45,27,78,0.92); color:#d4a8ff; border:1px solid #c084fc; }
+.grade-sr .card-sep { background:linear-gradient(90deg,transparent,#c084fc,transparent); }
+.grade-ur .grade-badge { background:rgba(58,40,0,0.92); color:#ffd97a; border:1px solid #fbbf24; }
+.grade-ur .card-sep { background:linear-gradient(90deg,transparent,#fbbf24,transparent); }
+.grade-lg .grade-badge {
+  background:linear-gradient(90deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff,#c77dff);
+  background-size:200%; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,0.5);
+  animation:rainbowText 2s linear infinite;
+}
+.grade-lg .card-sep { background:linear-gradient(90deg,transparent,#ff6b6b,#ffd93d,#4d96ff,transparent); }
+@keyframes rainbowText { 0%{background-position:0%} 100%{background-position:200%} }
+
+/* 뽑힌 카드 오로라 */
+.draw-front .card-aurora {
+  position:absolute; inset:0; border-radius:18px;
+  pointer-events:none; z-index:8; mix-blend-mode:screen;
+  opacity:0;
+}
+.draw-front.grade-sr .card-aurora {
+  background: repeating-linear-gradient(
+    var(--aurora-angle, 120deg),
+    rgba(192,132,252,0.25) 0%, rgba(100,180,255,0.2) 20%,
+    rgba(255,100,200,0.2) 40%, rgba(192,132,252,0.25) 60%
+  );
+  background-size: 200% 200%;
+  animation: auroraSR 3s ease-in-out infinite;
+  opacity: 1;
+}
+.draw-front.grade-ur .card-aurora {
+  background: repeating-linear-gradient(
+    var(--aurora-angle, 120deg),
+    rgba(255,210,80,0.35) 0%, rgba(255,160,30,0.25) 25%,
+    rgba(255,240,120,0.3) 50%, rgba(255,210,80,0.35) 75%
+  );
+  background-size: 200% 200%;
+  animation: auroraUR 2.5s ease-in-out infinite;
+  opacity: 1;
+}
+.draw-front.grade-lg .card-aurora {
+  background: repeating-linear-gradient(
+    var(--aurora-angle, 120deg),
+    rgba(255,80,80,0.22) 0%, rgba(255,200,50,0.22) 15%,
+    rgba(80,220,120,0.22) 30%, rgba(80,160,255,0.22) 45%,
+    rgba(180,80,255,0.22) 60%, rgba(255,80,80,0.22) 75%
+  );
+  background-size: 300% 300%;
+  animation: auroraLG 2s linear infinite;
+  opacity: 1;
+}
+@keyframes auroraSR {
+  0%   { background-position: 0% 0%;   --aurora-angle: 100deg; }
+  50%  { background-position: 100% 100%; --aurora-angle: 150deg; }
+  100% { background-position: 0% 0%;   --aurora-angle: 100deg; }
+}
+@keyframes auroraUR {
+  0%   { background-position: 0% 0%;   --aurora-angle: 110deg; }
+  50%  { background-position: 100% 100%; --aurora-angle: 160deg; }
+  100% { background-position: 0% 0%;   --aurora-angle: 110deg; }
+}
+@keyframes auroraLG {
+  0%   { background-position: 0% 0%;   --aurora-angle: 0deg; }
+  100% { background-position: 300% 300%; --aurora-angle: 360deg; }
+}
+
+.draw-card-wrap.empty .draw-back {
+  background:linear-gradient(135deg,#b0c8d8,#c8dde8); box-shadow:none;
+}
+.draw-card-wrap.empty .draw-back-hint { animation:none; opacity:0.5; }
+
+.draw-actions { display:flex; flex-direction:column; gap:8px; width:240px; }
+.draw-btn {
+  width:100%; padding:12px; border-radius:12px; border:none;
+  font-family:'Noto Sans KR',sans-serif; font-size:0.82rem; font-weight:700;
+  cursor:pointer; transition:all 0.2s;
+}
+.draw-btn.primary { background:linear-gradient(135deg,#4a9eff,#1a6fd4); color:white; box-shadow:0 4px 16px rgba(74,158,255,0.35); }
+.draw-btn.primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(74,158,255,0.45); }
+.draw-btn.primary:disabled { background:#c0d8ee; box-shadow:none; cursor:not-allowed; transform:none; color:#8ab0cc; }
+.draw-btn.secondary { background:white; color:var(--blue-dark); border:1.5px solid #c0ddf5; }
+.draw-btn.secondary:hover { background:#e8f4fd; }
+
+/* 클릭 */
+.click-section {
+  background:white; border-radius:16px; padding:14px 16px;
+  border:1.5px solid #d0eaf8; width:240px; box-shadow:0 2px 12px rgba(74,158,255,0.06);
+}
+.click-label { font-size:0.7rem; color:var(--muted); font-weight:700; margin-bottom:8px; }
+.click-btn {
+  width:100%; padding:14px;
+  background:linear-gradient(135deg,#e8f6ff,#d0eaf8);
+  border:2px solid #b0d8f0; border-radius:12px;
+  font-size:1.4rem; cursor:pointer; transition:all 0.1s;
+}
+.click-btn:active { transform:scale(0.96); background:#c8e4f4; }
+.click-btn:disabled { opacity:0.5; cursor:not-allowed; }
+.click-count-text { display:flex; justify-content:space-between; font-size:0.7rem; color:var(--muted); margin-top:6px; margin-bottom:4px; }
+
+/* COLLECTION */
+.collection-section {
+  flex:1;
+  background:white; border-radius:20px; padding:18px;
+  border:1.5px solid #d0eaf8; box-shadow:0 2px 12px rgba(74,158,255,0.06);
+}
+.col-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.col-title { font-size:0.85rem; font-weight:900; color:var(--text); }
+.col-count { font-size:0.72rem; color:var(--muted); background:#e8f4fd; padding:3px 10px; border-radius:99px; }
+
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:14px; }
+
+.col-card {
+  aspect-ratio:2/3; border-radius:10px; position:relative;
+  cursor:pointer; overflow:hidden; transition:transform 0.2s;
+  border:2px solid #d0eaf8; background:#f0f8ff;
+}
+.col-card:hover { transform:translateY(-4px) scale(1.03); }
+.col-card.locked { filter:grayscale(1); opacity:0.35; cursor:default; }
+.col-card.locked:hover { transform:none; }
+.col-card img { width:100%; height:100%; object-fit:cover; object-position:center 30%; }
+
+/* 등급별 반짝이 */
+.col-card::after {
+  content:''; position:absolute; inset:0; border-radius:10px;
+  pointer-events:none; z-index:3; mix-blend-mode:screen; opacity:0;
+}
+.col-card.grade-sr::after {
+  background: repeating-linear-gradient(
+    var(--col-angle, 120deg),
+    rgba(192,132,252,0.2) 0%, rgba(100,180,255,0.15) 25%,
+    rgba(255,100,200,0.15) 50%, rgba(192,132,252,0.2) 75%
+  );
+  background-size: 200% 200%;
+  animation: colAuroraSR 3s ease-in-out infinite;
+  opacity: 1;
+}
+.col-card.grade-ur::after {
+  background: repeating-linear-gradient(
+    var(--col-angle, 120deg),
+    rgba(255,210,80,0.3) 0%, rgba(255,160,30,0.2) 25%,
+    rgba(255,240,120,0.25) 50%, rgba(255,210,80,0.3) 75%
+  );
+  background-size: 200% 200%;
+  animation: colAuroraUR 2.5s ease-in-out infinite;
+  opacity: 1;
+}
+.col-card.grade-lg::after {
+  background: repeating-linear-gradient(
+    var(--col-angle, 0deg),
+    rgba(255,80,80,0.2) 0%, rgba(255,200,50,0.2) 15%,
+    rgba(80,220,120,0.2) 30%, rgba(80,160,255,0.2) 45%,
+    rgba(180,80,255,0.2) 60%, rgba(255,80,80,0.2) 75%
+  );
+  background-size: 300% 300%;
+  animation: colAuroraLG 2s linear infinite;
+  opacity: 1;
+}
+@keyframes colAuroraSR {
+  0%,100% { background-position:0% 0%;   --col-angle:100deg; }
+  50%      { background-position:100% 100%; --col-angle:150deg; }
+}
+@keyframes colAuroraUR {
+  0%,100% { background-position:0% 0%;   --col-angle:110deg; }
+  50%      { background-position:100% 100%; --col-angle:160deg; }
+}
+@keyframes colAuroraLG {
+  0%   { background-position:0% 0%;     --col-angle:0deg; }
+  100% { background-position:300% 300%; --col-angle:360deg; }
+}
+
+/* LEGEND 카드 테두리도 반짝 */
+.col-card.grade-lg {
+  box-shadow: 0 0 0 2px transparent;
+  animation: colLGBorder 2s linear infinite;
+}
+@keyframes colLGBorder {
+  0%   { box-shadow: 0 0 8px 2px rgba(255,107,107,0.6); }
+  33%  { box-shadow: 0 0 8px 2px rgba(255,217,61,0.6); }
+  66%  { box-shadow: 0 0 8px 2px rgba(77,150,255,0.6); }
+  100% { box-shadow: 0 0 8px 2px rgba(255,107,107,0.6); }
+}
+.col-card.grade-ur {
+  animation: colURBorder 2s ease-in-out infinite;
+}
+@keyframes colURBorder {
+  0%,100% { box-shadow: 0 0 6px 1px rgba(251,191,36,0.4); }
+  50%     { box-shadow: 0 0 14px 3px rgba(251,191,36,0.8); }
+}
+.col-card .col-card-footer {
+  position:absolute; bottom:0; left:0; right:0;
+  padding:20px 8px 8px;
+  background:linear-gradient(to top,rgba(0,0,0,0.82),transparent);
+}
+.col-card .col-name { font-size:0.72rem; font-weight:700; color:white; line-height:1.2; }
+.col-card .col-grade { font-size:0.6rem; padding:1px 6px; border-radius:99px; display:inline-block; margin-top:3px; }
+.col-card.locked .col-card-footer { display:none; }
+.col-card.locked::after {
+  content:'?'; position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:2.4rem; color:#b0c8d8; font-weight:900; font-family:'Nunito',sans-serif;
+}
+.col-card .dup {
+  position:absolute; top:5px; right:5px;
+  background:rgba(0,0,0,0.65); color:#fbbf24;
+  font-size:0.65rem; padding:2px 6px; border-radius:99px; font-weight:700;
+}
+.grade-n  .col-grade { background:#555; color:#ccc; }
+.grade-r  .col-grade { background:#1a3a6a; color:#7eb8ff; }
+.grade-sr .col-grade { background:#2d1b4e; color:#d4a8ff; }
+.grade-ur .col-grade { background:#3a2800; color:#ffd97a; }
+.grade-lg .col-grade { background:linear-gradient(90deg,#ff6b6b,#4d96ff,#c77dff); color:#fff; }
+
+/* 수집북 필터 탭 */
+.col-filters { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+.col-filter-btn {
+  padding:5px 14px; border-radius:99px; border:1.5px solid #d0eaf8;
+  background:white; color:var(--muted); font-size:0.72rem; font-weight:700;
+  cursor:pointer; transition:all 0.2s; font-family:'Noto Sans KR',sans-serif;
+}
+.col-filter-btn.active { background:var(--blue); color:white; border-color:var(--blue); }
+.col-filter-btn:hover:not(.active) { background:#e8f4fd; }
+
+/* SR이상 뽑기 이펙트 */
+.grade-flash {
+  position:fixed; inset:0; pointer-events:none; z-index:150;
+  display:flex; align-items:center; justify-content:center;
+  animation:gradeFlashOut 1s forwards;
+}
+@keyframes gradeFlashOut { 0%{opacity:1} 100%{opacity:0} }
+.grade-flash-sr  { background:radial-gradient(ellipse at center, rgba(192,132,252,0.6) 0%, transparent 70%); }
+.grade-flash-ur  { background:radial-gradient(ellipse at center, rgba(251,191,36,0.7) 0%, transparent 70%); }
+.grade-flash-lg  { background:radial-gradient(ellipse at center, rgba(255,255,255,0.9) 0%, rgba(255,107,107,0.4) 40%, transparent 70%); }
+.grade-flash-text {
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:2rem;
+  color:white; text-shadow:0 0 30px rgba(0,0,0,0.5);
+  animation:gradeTextPop 1s forwards;
+}
+@keyframes gradeTextPop { 0%{transform:scale(0.5);opacity:0} 30%{transform:scale(1.2);opacity:1} 80%{opacity:1} 100%{opacity:0;transform:scale(1.4)} }
+
+/* 교환 버튼 */
+.exchange-btn {
+  background:linear-gradient(135deg,#fbbf24,#f59e0b);
+  border:none; color:white; padding:10px 24px; border-radius:99px;
+  font-family:'Noto Sans KR',sans-serif; font-size:0.82rem; font-weight:700;
+  cursor:pointer; transition:all 0.2s;
+  box-shadow:0 4px 16px rgba(251,191,36,0.4);
+}
+.exchange-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(251,191,36,0.5); }
+
+/* 빈 수집북 */
+.col-empty { grid-column:1/-1; text-align:center; padding:40px 0; color:var(--muted); font-size:0.85rem; }
+.card-zoom-overlay {
+  position:fixed; inset:0;
+  background:rgba(10,30,60,0.55);
+  backdrop-filter:blur(8px);
+  z-index:200;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity 0.3s;
+}
+.card-zoom-overlay.show { opacity:1; pointer-events:all; }
+
+.zoom-wrap {
+  display:flex; flex-direction:column; align-items:center; gap:16px;
+  transform:scale(0.85); transition:transform 0.35s cubic-bezier(.17,.67,.48,1.3);
+}
+.card-zoom-overlay.show .zoom-wrap { transform:scale(1); }
+
+.zoom-card {
+  width:240px; height:360px; border-radius:20px; overflow:hidden;
+  position:relative; display:flex; flex-direction:column;
+  box-shadow:0 24px 64px rgba(0,0,0,0.35);
+}
+.zoom-card .zcard-header {
+  position:absolute; top:0; left:0; right:0; padding:12px 14px;
+  display:flex; align-items:center; justify-content:space-between;
+  background:linear-gradient(to bottom,rgba(0,0,0,0.8),transparent);
+  z-index:2; border-radius:20px 20px 0 0;
+}
+.zoom-card .zcard-name { font-family:'Nunito',sans-serif; font-weight:900; font-size:17px; color:white; text-shadow:0 2px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.8); }
+.zoom-card .zcard-grade { font-size:13px; font-weight:900; padding:4px 11px; border-radius:99px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+.zoom-card .zcard-art { flex:1; overflow:hidden; }
+.zoom-card .zcard-art img { width:100%; height:100%; object-fit:cover; object-position:center 30%; }
+.zoom-card .zcard-footer {
+  position:absolute; bottom:0; left:0; right:0;
+  padding:40px 14px 16px;
+  background:linear-gradient(to top,rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 60%, transparent 100%);
+  z-index:2;
+}
+.zoom-card .zcard-sep { height:1px; margin-bottom:10px; }
+.zoom-card .zcard-slogan { font-size:14px; color:rgba(255,255,255,0.95); font-style:italic; font-weight:700; text-shadow: 0 2px 8px rgba(0,0,0,0.9); }
+.zoom-card .zcard-desc { font-size:11.5px; color:rgba(255,255,255,0.9); line-height:1.5; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+
+/* 홀로그램 (확대 카드) */
+.zoom-holo {
+  position:absolute; inset:0; border-radius:20px; pointer-events:none; z-index:5;
+  mix-blend-mode:screen;
+}
+.zoom-card-wrap { position:relative; }
+.zoom-card-wrap:hover .zoom-holo { opacity:1 !important; }
+
+.zoom-info { color:rgba(255,255,255,0.7); font-size:0.8rem; text-align:center; }
+.zoom-dup { color:#fbbf24; font-weight:700; font-size:0.85rem; }
+.zoom-close {
+  background:rgba(255,255,255,0.15); border:1.5px solid rgba(255,255,255,0.3);
+  color:white; padding:10px 32px; border-radius:99px; cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif; font-size:0.85rem; font-weight:700;
+  transition:all 0.2s; backdrop-filter:blur(4px);
+}
+.zoom-close:hover { background:rgba(255,255,255,0.25); }
+
+/* 확대 카드 등급 배지 */
+.zoom-card.grade-n  .zcard-grade { background:rgba(80,80,80,0.95); color:#ddd; }
+.zoom-card.grade-r  .zcard-grade { background:#1a6fd4; color:#fff; }
+.zoom-card.grade-sr .zcard-grade { background:#7c3aed; color:#fff; }
+.zoom-card.grade-ur .zcard-grade { background:#d97706; color:#fff; }
+.zoom-card.grade-lg .zcard-grade {
+  background:linear-gradient(90deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff,#c77dff);
+  background-size:200%; color:#fff;
+  animation:rainbowText 2s linear infinite;
+}
+
+/* ── 기타 모달 ── */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(20,50,80,0.4);
+  backdrop-filter:blur(6px); z-index:100;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity 0.3s;
+}
+.modal-overlay.show { opacity:1; pointer-events:all; }
+.modal {
+  background:white; border-radius:24px; padding:28px;
+  max-width:400px; width:90%;
+  box-shadow:0 20px 60px rgba(20,50,80,0.2);
+  transform:scale(0.9); transition:transform 0.3s;
+}
+.modal-overlay.show .modal { transform:scale(1); }
+.modal-title { font-family:'Nunito',sans-serif; font-weight:900; font-size:1.2rem; margin-bottom:16px; color:var(--text); }
+.modal-close {
+  margin-top:20px; width:100%; padding:12px;
+  background:linear-gradient(135deg,#4a9eff,#1a6fd4);
+  color:white; border:none; border-radius:12px;
+  font-family:'Noto Sans KR',sans-serif; font-weight:700; font-size:0.9rem; cursor:pointer;
+}
+
+.prob-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+.prob-table th { text-align:left; padding:6px 8px; color:var(--muted); font-size:0.72rem; border-bottom:1px solid #e0eef8; }
+.prob-table td { padding:8px 8px; border-bottom:1px solid #f0f8ff; }
+.prob-bar-wrap { background:#e8f4fd; border-radius:99px; height:6px; overflow:hidden; margin-top:4px; }
+.prob-bar { height:100%; border-radius:99px; }
+
+.help-item { display:flex; gap:12px; margin-bottom:14px; align-items:flex-start; }
+.help-icon { font-size:1.4rem; flex-shrink:0; }
+.help-text-title { font-weight:700; font-size:0.85rem; margin-bottom:2px; }
+.help-text-desc { font-size:0.78rem; color:var(--muted); line-height:1.5; }
+
+/* 토스트 */
+.toast {
+  position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:rgba(20,50,80,0.85); color:white;
+  padding:10px 24px; border-radius:99px; font-size:0.82rem; font-weight:700;
+  z-index:300; opacity:0; transition:all 0.3s; white-space:nowrap;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+.float-num {
+  position:fixed; pointer-events:none;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:1rem; color:#1a6fd4;
+  animation:floatUp 0.8s ease-out forwards; z-index:400;
+}
+@keyframes floatUp { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-50px)} }
+
+@media(max-width:640px){
+  .main-area{flex-direction:column;align-items:center;}
+  .draw-section{flex:none;width:100%;max-width:300px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">CREATURE WORLD</div>
+    <button class="help-btn" onclick="showModal('helpModal')">게임 설명 ?</button>
+  </header>
+
+  <div class="status-bar">
+    <div class="status-card">
+      <div class="status-label">보유 뽑기권</div>
+      <div class="status-val" id="ticketCount">0</div>
+      <div class="status-sub">장</div>
+    </div>
+    <div class="status-card">
+      <div class="status-label">수집 카드</div>
+      <div class="status-val" id="collectedCount">0</div>
+      <div class="status-sub" id="collectedSub">/ 0 종류</div>
+    </div>
+    <div class="status-card">
+      <div class="status-label">접속 시간</div>
+      <div class="status-val" id="sessionTime">0</div>
+      <div class="status-sub">분 (1시간 달성시 +1장)</div>
+      <div class="prog-wrap"><div class="prog-track"><div class="prog-fill" id="sessionProg" style="width:0%"></div></div></div>
+    </div>
+    <div class="status-card" style="cursor:pointer" onclick="showModal('probModal')">
+      <div class="status-label">뽑기 확률</div>
+      <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px">
+        <div style="font-size:0.68rem;color:#888">N <span style="color:#4a9eff;font-weight:700">60%</span> &nbsp; R <span style="color:#4a9eff;font-weight:700">25%</span></div>
+        <div style="font-size:0.68rem;color:#888">SR <span style="color:#c084fc;font-weight:700">10%</span> &nbsp; UR <span style="color:#fbbf24;font-weight:700">4%</span></div>
+        <div style="font-size:0.68rem;color:#888">LEGEND <span style="color:#ff6b6b;font-weight:700">1%</span></div>
+      </div>
+      <div class="status-sub" style="margin-top:4px">눌러서 자세히 보기</div>
+    </div>
+  </div>
+
+  <div class="main-area">
+    <div class="draw-section">
+      <div class="draw-title">카드 뽑기</div>
+      <div class="draw-card-wrap" id="drawCardWrap" onclick="onDrawClick()">
+        <div class="draw-card-inner" id="drawCardInner">
+          <div class="draw-face draw-back">
+            <div class="draw-back-logo">CREATURE WORLD</div>
+            <div class="draw-back-hint" id="drawHint">탭해서 뽑기</div>
+          </div>
+          <div class="draw-face draw-front grade-n" id="drawFront">
+            <div class="card-header">
+              <span class="card-name" id="dName"></span>
+              <span class="grade-badge" id="dGrade"></span>
+            </div>
+            <div class="card-art"><img id="dImg" src="" alt=""></div>
+            <div class="card-footer">
+              <div class="card-sep" id="dSep"></div>
+              <div class="card-slogan" id="dSlogan"></div>
+              <div class="card-desc" id="dDesc"></div>
+            </div>
+            <div class="card-aurora"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="draw-actions">
+        <button class="draw-btn primary" id="drawBtn" onclick="drawCard()">🎴 뽑기권 사용 (1장)</button>
+        <button class="draw-btn secondary" id="nextDrawBtn" style="display:none" onclick="resetDraw()">다음 뽑기 →</button>
+      </div>
+
+      <div class="click-section">
+        <div class="click-label">클릭 뽑기 (하루 1회 · 500번)</div>
+        <button class="click-btn" onclick="handleClick(event)" id="clickBtn">🐾</button>
+        <div class="click-count-text">
+          <span id="clickText">0 / 500</span>
+          <span id="clickDoneText" style="color:#4a9eff;font-weight:700;display:none">오늘 완료 ✓</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="clickProg" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="collection-section">
+      <div class="col-header">
+        <div class="col-title">📚 수집북</div>
+        <div class="col-count" id="colCountBadge">0 / 0</div>
+      </div>
+      <div class="col-filters">
+        <button class="col-filter-btn active" onclick="setFilter('all',this)">전체</button>
+        <button class="col-filter-btn" onclick="setFilter('rumi',this)">루미</button>
+        <button class="col-filter-btn" onclick="setFilter('toto',this)">토토리</button>
+        <button class="col-filter-btn" onclick="setFilter('n',this)">N</button>
+        <button class="col-filter-btn" onclick="setFilter('r',this)">R</button>
+        <button class="col-filter-btn" onclick="setFilter('sr',this)">SR</button>
+        <button class="col-filter-btn" onclick="setFilter('ur',this)">UR</button>
+        <button class="col-filter-btn" onclick="setFilter('lg',this)">LEGEND</button>
+      </div>
+      <div class="card-grid" id="cardGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 카드 확대 모달 -->
+<div class="card-zoom-overlay" id="zoomOverlay" onclick="closeZoom(event)">
+  <div class="zoom-wrap">
+    <div class="zoom-card-wrap">
+      <div class="zoom-card grade-n" id="zoomCard">
+        <div class="zcard-header">
+          <span class="zcard-name" id="zName"></span>
+          <span class="zcard-grade" id="zGrade"></span>
+        </div>
+        <div class="zcard-art"><img id="zImg" src="" alt=""></div>
+        <div class="zcard-footer">
+          <div class="zcard-sep" id="zSep"></div>
+          <div class="zcard-slogan" id="zSlogan"></div>
+          <div class="zcard-desc" id="zDesc"></div>
+        </div>
+      </div>
+      <div class="zoom-holo" id="zoomHolo"></div>
+    </div>
+    <div class="zoom-info" id="zoomInfo"></div>
+    <button class="exchange-btn" id="exchangeBtn" style="display:none" onclick="exchangeCard()">🎴 뽑기권으로 교환 (10장 → 1장)</button>
+    <button class="zoom-close" onclick="closeZoomBtn()">닫기</button>
+  </div>
+</div>
+
+<!-- 확률 모달 -->
+<div class="modal-overlay" id="probModal" onclick="closeModalOut(event,'probModal')">
+  <div class="modal">
+    <div class="modal-title">🎲 뽑기 확률</div>
+    <table class="prob-table">
+      <thead><tr><th>등급</th><th>확률</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><span style="background:#555;color:#ccc;padding:2px 8px;border-radius:99px;font-size:0.75rem;font-weight:700">N</span> 노말</td><td style="font-weight:700">60%</td><td style="width:120px"><div class="prob-bar-wrap"><div class="prob-bar" style="width:60%;background:#9a9a9a"></div></div></td></tr>
+        <tr><td><span style="background:#1a3a6a;color:#7eb8ff;padding:2px 8px;border-radius:99px;font-size:0.75rem;font-weight:700">R</span> 레어</td><td style="font-weight:700">25%</td><td><div class="prob-bar-wrap"><div class="prob-bar" style="width:25%;background:#4a9eff"></div></div></td></tr>
+        <tr><td><span style="background:#2d1b4e;color:#d4a8ff;padding:2px 8px;border-radius:99px;font-size:0.75rem;font-weight:700">SR</span> 슈퍼레어</td><td style="font-weight:700">10%</td><td><div class="prob-bar-wrap"><div class="prob-bar" style="width:10%;background:#c084fc"></div></div></td></tr>
+        <tr><td><span style="background:#3a2800;color:#ffd97a;padding:2px 8px;border-radius:99px;font-size:0.75rem;font-weight:700">UR</span> 울트라레어</td><td style="font-weight:700">4%</td><td><div class="prob-bar-wrap"><div class="prob-bar" style="width:4%;background:#fbbf24"></div></div></td></tr>
+        <tr><td><span style="background:linear-gradient(90deg,#ff6b6b,#4d96ff,#c77dff);color:#fff;padding:2px 8px;border-radius:99px;font-size:0.75rem;font-weight:700">LG</span> 레전드</td><td style="font-weight:700">1%</td><td><div class="prob-bar-wrap"><div class="prob-bar" style="width:1%;background:#ff6b6b"></div></div></td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.72rem;color:var(--muted);margin-top:12px">중복 카드도 뽑힐 수 있으며, 같은 카드가 여러 장 모일 수 있어요.</p>
+    <button class="modal-close" onclick="closeModal('probModal')">확인</button>
+  </div>
+</div>
+
+<!-- 도움말 모달 -->
+<div class="modal-overlay" id="helpModal" onclick="closeModalOut(event,'helpModal')">
+  <div class="modal">
+    <div class="modal-title">🌍 게임 설명</div>
+    <div class="help-item"><div class="help-icon">📅</div><div><div class="help-text-title">매일 뽑기권</div><div class="help-text-desc">매일 처음 접속하면 뽑기권 10장을 드려요!</div></div></div>
+    <div class="help-item"><div class="help-icon">⏰</div><div><div class="help-text-title">1시간 접속 보너스</div><div class="help-text-desc">오늘 1시간 이상 접속하면 추가로 1장을 드려요.</div></div></div>
+    <div class="help-item"><div class="help-icon">🐾</div><div><div class="help-text-title">클릭 뽑기</div><div class="help-text-desc">하루에 1번, 500번 클릭하면 뽑기권 1장을 드려요!</div></div></div>
+    <div class="help-item"><div class="help-icon">🎴</div><div><div class="help-text-title">카드 수집</div><div class="help-text-desc">카드를 수집북에 모아보세요. 카드를 클릭하면 크게 볼 수 있어요!</div></div></div>
+    <div class="help-item"><div class="help-icon">🔄</div><div><div class="help-text-title">카드 교환</div><div class="help-text-desc">같은 카드가 10장 이상이면 뽑기권 1장으로 교환할 수 있어요!</div></div></div>
+    <div class="help-item"><div class="help-icon">💾</div><div><div class="help-text-title">자동 저장</div><div class="help-text-desc">수집한 카드는 이 기기에 자동으로 저장돼요.</div></div></div>
+    <button class="modal-close" onclick="closeModal('helpModal')">시작하기 🎉</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CARDS = [
+  { id:'rumi_n',  name:'루미', slogan:'"으쌰으쌰!"',                      desc:'', grade:'n',  img:'노말여우.png' },
+  { id:'rumi_r',  name:'루미', slogan:'"야호~!"',                         desc:'', grade:'r',  img:'레어여우.png' },
+  { id:'rumi_sr', name:'루미', slogan:'"세상은 내가 지킨다!"',            desc:'', grade:'sr', img:'슈퍼레어여우.png' },
+  { id:'rumi_ur', name:'루미', slogan:'"내가 최고야 다 비켜~!"',          desc:'', grade:'ur', img:'울트라레어여우.png' },
+  { id:'rumi_lg', name:'루미', slogan:'"이 밤이 끝나지 않았으면!"',       desc:'', grade:'lg', img:'레전드여우.png' },
+  { id:'toto_n',  name:'토토리', slogan:'"흠냐...zzz"',                   desc:'', grade:'n',  img:'노말햄스터.png' },
+  { id:'toto_r',  name:'토토리', slogan:'"이것만 뛰면 만두 10개..!"',     desc:'', grade:'r',  img:'레어햄스터.png' },
+  { id:'toto_sr', name:'토토리', slogan:'"잡았다! 오늘 저녁은 생선이다!"', desc:'', grade:'sr', img:'슈퍼레어햄스터.png' },
+  { id:'toto_ur', name:'토토리', slogan:'"해바라기씨는 너한테 줄 건 없으ㄹ으어어.."', desc:'', grade:'ur', img:'울트라레어햄스터.png' },
+  { id:'toto_lg', name:'토토리', slogan:'"짠— 놀랐지?"',                  desc:'', grade:'lg', img:'레전드햄스터.png' },
+];
+
+const GRADE_LABEL = {n:'N',r:'R',sr:'SR',ur:'UR',lg:'LEGEND'};
+const GRADE_WEIGHT = {n:60,r:25,sr:10,ur:4,lg:1};
+const GRADE_HOLO = {
+  n: null,
+  r: 'radial-gradient(ellipse at var(--mx,50%) var(--my,50%), rgba(100,180,255,0.35) 0%, transparent 65%)',
+  sr: 'repeating-linear-gradient(calc(var(--angle,120deg)), rgba(255,80,80,0.15) 0%, rgba(255,200,50,0.15) 10%, rgba(80,220,120,0.15) 20%, rgba(80,160,255,0.15) 30%, rgba(180,80,255,0.15) 40%, rgba(255,80,80,0.15) 50%)',
+  ur: 'radial-gradient(ellipse at var(--mx,50%) var(--my,50%), rgba(255,220,80,0.5) 0%, rgba(255,160,30,0.2) 40%, transparent 65%)',
+  lg: 'repeating-linear-gradient(calc(var(--angle,0deg)), rgba(255,80,80,0.2) 0%, rgba(255,200,50,0.2) 10%, rgba(80,220,120,0.2) 20%, rgba(80,160,255,0.2) 30%, rgba(180,80,255,0.2) 40%, rgba(255,80,80,0.2) 50%)',
+};
+
+let state = {};
+function loadState() {
+  const today = new Date().toDateString();
+  const saved = localStorage.getItem('cw_state');
+  state = saved ? JSON.parse(saved) : {};
+  state = Object.assign({ tickets:0, collection:{}, lastLogin:null, sessionBonus:false, clickCount:0, clickDone:false, clickDate:null, sessionMinutes:0, sessionDate:null }, state);
+  if (state.clickDate !== today) { state.clickCount=0; state.clickDone=false; state.clickDate=today; }
+  if (state.sessionDate !== today) { state.sessionMinutes=0; state.sessionBonus=false; state.sessionDate=today; }
+  if (state.lastLogin !== today) {
+    state.lastLogin=today;
+    state.tickets+=10;
+    setTimeout(()=>showToast('📅 매일 접속 보너스! 뽑기권 +10장'), 600);
+  }
+  saveState();
+}
+function saveState() { localStorage.setItem('cw_state', JSON.stringify(state)); }
+
+// 자정 체크 - 날짜 바뀌면 자동 초기화
+function checkMidnight() {
+  const today = new Date().toDateString();
+  if (state.lastLogin !== today) {
+    loadState();
+    updateUI();
+    renderGrid();
+    showToast('🌙 날짜가 바뀌었어요! 뽑기권 +5장');
+  }
+}
+setInterval(checkMidnight, 60000);
+
+// 뽑기 이펙트
+function gradeFlash(grade) {
+  if(!['sr','ur','lg'].includes(grade)) return;
+  const el = document.createElement('div');
+  el.className = 'grade-flash grade-flash-' + grade;
+  const labels = {sr:'💜 SUPER RARE!', ur:'✨ ULTRA RARE!', lg:'🌈 L E G E N D !'};
+  el.innerHTML = `<div class="grade-flash-text">${labels[grade]}</div>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+// 뽑기
+let isFlipped = false;
+function randomCard() {
+  const total = Object.values(GRADE_WEIGHT).reduce((a,b)=>a+b,0);
+  let r = Math.random()*total;
+  let grade='n';
+  for(const [g,w] of Object.entries(GRADE_WEIGHT)){r-=w;if(r<=0){grade=g;break;}}
+  const pool = CARDS.filter(c=>c.grade===grade);
+  return pool.length ? pool[Math.floor(Math.random()*pool.length)] : CARDS[0];
+}
+function drawCard() {
+  if(state.tickets<=0){showToast('뽑기권이 없어요 😢');return;}
+  if(isFlipped)return;
+  state.tickets--;
+  const card = randomCard();
+  if(!state.collection[card.id]) state.collection[card.id]=0;
+  state.collection[card.id]++;
+  saveState();
+
+  document.getElementById('drawFront').className='draw-face draw-front grade-'+card.grade;
+  document.getElementById('dName').textContent=card.name;
+  document.getElementById('dGrade').textContent=GRADE_LABEL[card.grade];
+  document.getElementById('dImg').src=card.img;
+  document.getElementById('dSlogan').textContent=card.slogan;
+  document.getElementById('dDesc').textContent=card.desc;
+
+  // SR 이상 이펙트
+  if(['sr','ur','lg'].includes(card.grade)) {
+    gradeFlash(card.grade);
+    setTimeout(()=>{
+      isFlipped=true;
+      document.getElementById('drawCardInner').classList.add('flipped');
+    }, 400);
+  } else {
+    isFlipped=true;
+    document.getElementById('drawCardInner').classList.add('flipped');
+  }
+
+  document.getElementById('drawBtn').style.display='none';
+  document.getElementById('nextDrawBtn').style.display='';
+  const isNew=state.collection[card.id]===1;
+  showToast((isNew?'🆕 NEW! ':'✨ ')+card.name+' 획득!');
+  updateUI(); renderGrid();
+}
+function onDrawClick(){ if(!isFlipped&&state.tickets>0) drawCard(); }
+function resetDraw(){
+  isFlipped=false;
+  document.getElementById('drawCardInner').classList.remove('flipped');
+  document.getElementById('drawBtn').style.display='';
+  document.getElementById('nextDrawBtn').style.display='none';
+}
+
+// 필터
+let currentFilter = 'all';
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.col-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+// 수집북
+function renderGrid(){
+  const grid=document.getElementById('cardGrid');
+  grid.innerHTML='';
+
+  // 필터 적용
+  let filtered = CARDS;
+  if(currentFilter === 'rumi') filtered = CARDS.filter(c=>c.id.startsWith('rumi'));
+  else if(currentFilter === 'toto') filtered = CARDS.filter(c=>c.id.startsWith('toto'));
+  else if(['n','r','sr','ur','lg'].includes(currentFilter)) filtered = CARDS.filter(c=>c.grade===currentFilter);
+
+  const owned = filtered.filter(c=>state.collection[c.id]>0);
+  const locked = filtered.filter(c=>!state.collection[c.id]);
+
+  if(owned.length===0 && locked.length===0){
+    grid.innerHTML='<div class="col-empty">아직 카드가 없어요!<br>뽑기권을 사용해보세요 🎴</div>';
+    return;
+  }
+
+  owned.forEach(card=>{
+    const cnt=state.collection[card.id];
+    const div=document.createElement('div');
+    div.className='col-card grade-'+card.grade;
+    div.innerHTML=`
+      <img src="${card.img}" alt="${card.name}">
+      <div class="col-card-footer">
+        <div class="col-name">${card.name}</div>
+        <span class="col-grade">${GRADE_LABEL[card.grade]}</span>
+      </div>
+      ${cnt>1?`<div class="dup">×${cnt}</div>`:''}
+    `;
+    div.onclick=()=>openZoom(card, cnt);
+    grid.appendChild(div);
+  });
+
+  locked.forEach(()=>{
+    const div=document.createElement('div');
+    div.className='col-card locked';
+    grid.appendChild(div);
+  });
+}
+function handleClick(e){
+  if(state.clickDone){showToast('오늘 클릭 뽑기는 이미 완료했어요!');return;}
+  state.clickCount++;
+  const el=document.createElement('div');
+  el.className='float-num'; el.textContent='+1';
+  el.style.left=(e.clientX-15)+'px'; el.style.top=(e.clientY-20)+'px';
+  document.body.appendChild(el); setTimeout(()=>el.remove(),800);
+  if(state.clickCount>=500){state.clickDone=true;state.tickets++;showToast('🎉 500번 달성! 뽑기권 +1장!');}
+  saveState(); updateUI();
+}
+
+// 세션 타이머
+setInterval(()=>{
+  state.sessionMinutes=(state.sessionMinutes||0)+1;
+  if(state.sessionMinutes>=60&&!state.sessionBonus){state.sessionBonus=true;state.tickets++;showToast('⏰ 1시간 접속 달성! 뽑기권 +1장!');}
+  saveState(); updateUI();
+},60000);
+
+// UI
+function updateUI(){
+  document.getElementById('ticketCount').textContent=state.tickets;
+  const total=Object.values(state.collection).reduce((a,b)=>a+b,0);
+  const unique=Object.keys(state.collection).filter(id=>state.collection[id]>0).length;
+  document.getElementById('collectedCount').textContent=unique;
+  document.getElementById('collectedSub').textContent='/ '+CARDS.length+' 종류';
+  document.getElementById('colCountBadge').textContent=unique+' / '+CARDS.length;
+  const mins=Math.min(state.sessionMinutes||0,60);
+  document.getElementById('sessionTime').textContent=mins;
+  document.getElementById('sessionProg').style.width=(mins/60*100)+'%';
+  const clicks=Math.min(state.clickCount,500);
+  document.getElementById('clickText').textContent=clicks+' / 500';
+  document.getElementById('clickProg').style.width=(clicks/5)+'%';
+  document.getElementById('clickDoneText').style.display=state.clickDone?'':'none';
+  document.getElementById('clickText').style.display=state.clickDone?'none':'';
+  document.getElementById('clickBtn').disabled=state.clickDone;
+  const db=document.getElementById('drawBtn');
+  db.textContent=state.tickets>0?`🎴 뽑기권 사용 (${state.tickets}장 보유)`:'뽑기권이 없어요 😢';
+  db.disabled=state.tickets<=0;
+}
+
+// 수집북
+
+// 카드 확대
+let currentZoomCard = null;
+function openZoom(card, cnt){
+  currentZoomCard = card;
+  const zCard=document.getElementById('zoomCard');
+  zCard.className='zoom-card grade-'+card.grade;
+  document.getElementById('zName').textContent=card.name;
+  document.getElementById('zGrade').textContent=GRADE_LABEL[card.grade];
+  document.getElementById('zImg').src=card.img;
+  document.getElementById('zSlogan').textContent=card.slogan;
+  document.getElementById('zDesc').textContent=card.desc;
+
+  const sep=document.getElementById('zSep');
+  const sepColors={n:'rgba(150,150,150,0.4)',r:'linear-gradient(90deg,transparent,#4a9eff,transparent)',sr:'linear-gradient(90deg,transparent,#c084fc,transparent)',ur:'linear-gradient(90deg,transparent,#fbbf24,transparent)',lg:'linear-gradient(90deg,transparent,#ff6b6b,#ffd93d,#4d96ff,transparent)'};
+  sep.style.background=sepColors[card.grade]||sepColors.n;
+
+  const holo=document.getElementById('zoomHolo');
+  holo.style.cssText='';
+  if(GRADE_HOLO[card.grade]){
+    holo.style.background=GRADE_HOLO[card.grade];
+    holo.style.opacity=card.grade==='lg'?'0.65':'0';
+    holo.style.mixBlendMode='screen';
+    holo.style.borderRadius='20px';
+    holo.style.transition='opacity 0.3s';
+    if(card.grade==='lg') holo.style.animation='legendSpin 4s linear infinite';
+  }
+
+  document.getElementById('zoomInfo').innerHTML=cnt>1?`<span class="zoom-dup">×${cnt}장 보유</span>`:'';
+  document.getElementById('exchangeBtn').style.display = cnt >= 10 ? '' : 'none';
+  document.getElementById('zoomOverlay').classList.add('show');
+
+  const wrap=document.querySelector('.zoom-card-wrap');
+  wrap.onmousemove=(e)=>{
+    if(!GRADE_HOLO[card.grade])return;
+    const r=zCard.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width;
+    const y=(e.clientY-r.top)/r.height;
+    const angle=Math.atan2(y-0.5,x-0.5)*(180/Math.PI)+90;
+    holo.style.opacity='1';
+    holo.style.setProperty('--mx',(x*100)+'%');
+    holo.style.setProperty('--my',(y*100)+'%');
+    holo.style.setProperty('--angle',angle+'deg');
+    holo.style.background=GRADE_HOLO[card.grade];
+  };
+  wrap.onmouseleave=()=>{ if(card.grade!=='lg') holo.style.opacity='0'; };
+}
+
+// 교환
+function exchangeCard(){
+  if(!currentZoomCard) return;
+  const cnt = state.collection[currentZoomCard.id] || 0;
+  if(cnt < 10){ showToast('10장이 필요해요!'); return; }
+  state.collection[currentZoomCard.id] -= 10;
+  state.tickets += 1;
+  saveState();
+  showToast('🎴 뽑기권 1장으로 교환했어요!');
+  const newCnt = state.collection[currentZoomCard.id];
+  document.getElementById('zoomInfo').innerHTML = newCnt > 1 ? `<span class="zoom-dup">×${newCnt}장 보유</span>` : '';
+  document.getElementById('exchangeBtn').style.display = newCnt >= 10 ? '' : 'none';
+  updateUI(); renderGrid();
+}
+function closeZoom(e){ if(e.target.id==='zoomOverlay') document.getElementById('zoomOverlay').classList.remove('show'); }
+function closeZoomBtn(){ document.getElementById('zoomOverlay').classList.remove('show'); }
+
+// 모달
+function showModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function closeModalOut(e,id){if(e.target.id===id)closeModal(id);}
+
+// 토스트
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// INIT
+loadState(); updateUI(); renderGrid();
+</script>
+</body>
+</html>
