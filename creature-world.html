@@ -36,14 +36,14 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
 .help-btn {
-  position: absolute; right: 0; top: 36px;
+  position: absolute; right: 0; top: 36px; z-index: 10;
   background: white; border: 1.5px solid #c0ddf5; border-radius: 99px;
   padding: 6px 16px; font-size: 0.78rem; color: var(--blue-dark);
   cursor: pointer; font-weight: 700; font-family: 'Noto Sans KR', sans-serif;
   transition: all 0.2s;
 }
 .share-btn {
-  position: absolute; left: 0; top: 36px;
+  position: absolute; left: 0; top: 36px; z-index: 10;
   background: linear-gradient(135deg, #4a9eff, #1a6fd4);
   border: none; border-radius: 99px;
   padding: 6px 16px; font-size: 0.78rem; color: white;
@@ -526,6 +526,37 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
 .col-filter-btn.active { background:var(--blue); color:white; border-color:var(--blue); }
 .col-filter-btn:hover:not(.active) { background:#e8f4fd; }
 
+/* 수집북 필터 */
+.col-filters-wrap { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+.col-filter-row {
+  display:flex; gap:6px;
+  overflow-x:auto; padding-bottom:4px;
+  scrollbar-width:none; -ms-overflow-style:none;
+}
+.col-filter-row::-webkit-scrollbar { display:none; }
+
+.col-filter-pill {
+  padding:6px 16px; border-radius:99px; border:none; flex-shrink:0;
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  box-shadow:0 2px 8px rgba(74,158,255,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
+  color:var(--muted); font-size:0.75rem; font-weight:700;
+  cursor:pointer; transition:all 0.2s; font-family:'Noto Sans KR',sans-serif;
+  white-space:nowrap;
+}
+.col-filter-pill:hover:not(.active) {
+  background:rgba(255,255,255,0.85);
+  box-shadow:0 4px 12px rgba(74,158,255,0.15), inset 0 1px 0 rgba(255,255,255,0.9);
+  transform:translateY(-1px);
+}
+.col-filter-pill.active {
+  background:linear-gradient(135deg, rgba(74,158,255,0.85), rgba(26,111,212,0.85));
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  color:white !important;
+  box-shadow:0 4px 16px rgba(74,158,255,0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+  transform:translateY(-1px);
+}
+
 /* SR이상 뽑기 이펙트 */
 .grade-flash {
   position:fixed; inset:0; pointer-events:none; z-index:150;
@@ -679,6 +710,78 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
   .main-area{flex-direction:column;align-items:center;}
   .draw-section{flex:none;width:100%;max-width:300px;}
 }
+
+/* 상점 */
+.shop-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.shop-item {
+  background:white; border-radius:20px; padding:24px;
+  border:1.5px solid #d0eaf8; box-shadow:0 2px 12px rgba(74,158,255,0.06);
+  display:flex; gap:20px; align-items:center;
+}
+.shop-item-left { flex-shrink:0; }
+.shop-card-preview {
+  width:100px; height:150px; border-radius:14px; overflow:hidden;
+  box-shadow:0 8px 24px rgba(0,0,0,0.2);
+}
+.shop-card-back {
+  width:100%; height:100%;
+  background:linear-gradient(145deg,#1565c0,#1e88e5,#29b6f6,#00acc1);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:6px; position:relative; overflow:hidden;
+  border:2px solid rgba(255,255,255,0.25);
+}
+.shop-card-aurora {
+  position:absolute; inset:0;
+  background:repeating-linear-gradient(120deg,rgba(255,80,80,0.2) 0%,rgba(255,200,50,0.2) 15%,rgba(80,220,120,0.2) 30%,rgba(80,160,255,0.2) 45%,rgba(180,80,255,0.2) 60%,rgba(255,80,80,0.2) 75%);
+  background-size:300% 300%; animation:auroraLG 2s linear infinite;
+}
+.shop-card-logo { font-family:'Nunito',sans-serif; font-weight:900; font-size:0.7rem; color:rgba(255,255,255,0.8); letter-spacing:1px; position:relative; z-index:1; }
+.shop-card-star { font-size:1.4rem; position:relative; z-index:1; }
+.shop-item-right { flex:1; display:flex; flex-direction:column; gap:8px; }
+.shop-item-name { font-family:'Nunito',sans-serif; font-weight:900; font-size:1.1rem; color:var(--text); }
+.shop-item-desc { font-size:0.78rem; color:var(--muted); line-height:1.5; }
+.shop-item-rates { display:flex; gap:6px; flex-wrap:wrap; }
+.shop-rate { font-size:0.72rem; font-weight:700; padding:3px 10px; border-radius:99px; }
+.shop-rate.sr { background:#2d1b4e; color:#d4a8ff; }
+.shop-rate.ur { background:#3a2800; color:#ffd97a; }
+.shop-rate.lg { background:linear-gradient(90deg,#ff6b6b,#4d96ff,#c77dff); color:#fff; }
+.shop-item-price { font-size:0.9rem; font-weight:700; color:var(--blue-dark); }
+.shop-buy-btn {
+  padding:12px 28px; border-radius:12px; border:none; align-self:flex-start;
+  background:linear-gradient(135deg,#4a9eff,#1a6fd4); color:white;
+  font-family:'Noto Sans KR',sans-serif; font-size:0.85rem; font-weight:700;
+  cursor:pointer; transition:all 0.2s; box-shadow:0 4px 16px rgba(74,158,255,0.35);
+}
+.shop-buy-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(74,158,255,0.45); }
+.shop-result-wrap {
+  width:240px; height:360px; perspective:1000px; cursor:pointer;
+}
+.shop-result-inner {
+  width:100%; height:100%; position:relative;
+  transform-style:preserve-3d; -webkit-transform-style:preserve-3d;
+  transition:transform 0.7s cubic-bezier(.4,0,.2,1);
+}
+.shop-result-inner.flipped { transform:rotateY(180deg); }
+.shop-result-back, .shop-result-front {
+  position:absolute; inset:0; border-radius:20px;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  width:100%; height:100%;
+}
+.shop-result-back {
+  background:linear-gradient(145deg,#1565c0,#1e88e5,#29b6f6,#00acc1);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px; border:3px solid rgba(255,255,255,0.25); overflow:hidden;
+}
+.shop-result-aurora {
+  position:absolute; inset:0; opacity:0; pointer-events:none;
+  background-size:300% 300%; animation:auroraLG 2s linear infinite; mix-blend-mode:screen;
+}
+.shop-back-logo { font-family:'Nunito',sans-serif; font-weight:900; font-size:1.1rem; color:rgba(255,255,255,0.8); letter-spacing:2px; position:relative; z-index:1; }
+.shop-back-star { font-size:3rem; position:relative; z-index:1; animation:hintBlink 1.5s ease-in-out infinite; }
+.shop-result-front {
+  transform:rotateY(180deg); overflow:hidden; display:flex; flex-direction:column;
+  box-shadow:0 10px 40px rgba(0,0,0,0.3);
+}
 </style>
 </head>
 <body>
@@ -687,7 +790,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
   <header>
     <div class="logo">CREATURE WORLD</div>
     <button class="help-btn" onclick="showModal('helpModal')">게임 설명 ?</button>
-    <button class="share-btn" onclick="shareLink()">🔗 친구 초대</button>
+    <button class="share-btn" onclick="shareLink()">친구 초대</button>
   </header>
 
   <div class="status-bar">
@@ -720,8 +823,9 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
 
   <!-- 페이지 탭 -->
   <div class="page-tabs">
-    <button class="page-tab active" onclick="switchTab('main',this)">🎴 뽑기</button>
-    <button class="page-tab" onclick="switchTab('synth',this)">⚗️ 합성</button>
+    <button class="page-tab active" onclick="switchTab('main',this)">뽑기</button>
+    <button class="page-tab" onclick="switchTab('synth',this)">합성</button>
+    <button class="page-tab" onclick="switchTab('shop',this)">상점</button>
   </div>
 
   <div class="main-area" id="mainArea">
@@ -750,7 +854,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
       </div>
 
       <div class="draw-actions">
-        <button class="draw-btn primary" id="drawBtn" onclick="drawCard()">🎴 뽑기권 사용 (1장)</button>
+        <button class="draw-btn primary" id="drawBtn" onclick="drawCard()">뽑기권 사용 (1장)</button>
         <button class="draw-btn secondary" id="nextDrawBtn" style="display:none" onclick="resetDraw()">다음 뽑기 →</button>
       </div>
 
@@ -767,19 +871,25 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
 
     <div class="collection-section">
       <div class="col-header">
-        <div class="col-title">📚 수집북</div>
+        <div class="col-title">수집북</div>
         <div class="col-count" id="colCountBadge">0 / 0</div>
       </div>
-      <div class="col-filters">
-        <button class="col-filter-btn active" onclick="setFilter('all',this)">전체</button>
-        <button class="col-filter-btn" onclick="setFilter('rumi',this)">루미</button>
-        <button class="col-filter-btn" onclick="setFilter('toto',this)">토토리</button>
-        <button class="col-filter-btn" onclick="setFilter('pin',this)">핀초코</button>
-        <button class="col-filter-btn" onclick="setFilter('n',this)">N</button>
-        <button class="col-filter-btn" onclick="setFilter('r',this)">R</button>
-        <button class="col-filter-btn" onclick="setFilter('sr',this)">SR</button>
-        <button class="col-filter-btn" onclick="setFilter('ur',this)">UR</button>
-        <button class="col-filter-btn" onclick="setFilter('lg',this)">LEGEND</button>
+      <div class="col-filters-wrap">
+        <div class="col-filter-row" id="charFilterRow">
+          <button class="col-filter-pill active" onclick="setCharFilter('all',this)">전체</button>
+          <button class="col-filter-pill" onclick="setCharFilter('rumi',this)">루미</button>
+          <button class="col-filter-pill" onclick="setCharFilter('toto',this)">토토리</button>
+          <button class="col-filter-pill" onclick="setCharFilter('pin',this)">핀초코</button>
+          <button class="col-filter-pill" onclick="setCharFilter('luka',this)">루카뇽</button>
+        </div>
+        <div class="col-filter-row" id="gradeFilterRow">
+          <button class="col-filter-pill active" onclick="setGradeFilter('all',this)">전체</button>
+          <button class="col-filter-pill" onclick="setGradeFilter('n',this)">N</button>
+          <button class="col-filter-pill" onclick="setGradeFilter('r',this)" style="color:#4a9eff">R</button>
+          <button class="col-filter-pill" onclick="setGradeFilter('sr',this)" style="color:#c084fc">SR</button>
+          <button class="col-filter-pill" onclick="setGradeFilter('ur',this)" style="color:#fbbf24">UR</button>
+          <button class="col-filter-pill" onclick="setGradeFilter('lg',this)" style="color:#ff6b6b">LEGEND</button>
+        </div>
       </div>
       <div class="card-grid" id="cardGrid"></div>
     </div>
@@ -788,7 +898,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
   <!-- 합성 탭 -->
   <div class="synth-section" id="synthSection">
     <div class="synth-top">
-      <div class="synth-title">⚗️ 카드 합성</div>
+      <div class="synth-title">카드 합성</div>
       <div class="synth-desc">같은 등급 카드 3장으로 합성! 10% 확률로 상위 등급 카드 획득!</div>
 
       <!-- 슬롯 + 결과 -->
@@ -853,6 +963,78 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
     </div>
   </div>
 
+  <!-- 상점 탭 -->
+  <div class="synth-section" id="shopSection">
+    <div class="shop-header">
+      <div class="col-title">상점</div>
+      <div class="col-count">보유 뽑기권 <span id="shopTicketCount">0</span>장</div>
+    </div>
+
+    <!-- 프리미엄 뽑기 카드 -->
+    <div class="shop-item">
+      <div class="shop-item-left">
+        <div class="shop-card-preview">
+          <div class="shop-card-back">
+            <div class="shop-card-aurora"></div>
+            <div class="shop-card-logo">PREMIUM</div>
+            <div class="shop-card-star">⭐</div>
+          </div>
+        </div>
+      </div>
+      <div class="shop-item-right">
+        <div class="shop-item-name">프리미엄 뽑기</div>
+        <div class="shop-item-desc">SR 이상 확정! 일반 뽑기보다 훨씬 높은 확률!</div>
+        <div class="shop-item-rates">
+          <span class="shop-rate sr">SR 75%</span>
+          <span class="shop-rate ur">UR 20%</span>
+          <span class="shop-rate lg">LG 5%</span>
+        </div>
+        <div class="shop-item-price">뽑기권 10장</div>
+        <button class="shop-buy-btn" onclick="buyPremium()">구매하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 상점 구매 확인 모달 -->
+  <div class="modal-overlay" id="shopConfirmModal" onclick="closeModalOut(event,'shopConfirmModal')">
+    <div class="modal">
+      <div class="modal-title">프리미엄 뽑기</div>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:20px;line-height:1.6">뽑기권 <strong style="color:var(--blue-dark)">10장</strong>으로 프리미엄 뽑기를 하시겠습니까?<br>SR 이상 카드가 확정으로 나와요!</p>
+      <div style="display:flex;gap:8px;">
+        <button onclick="closeModal('shopConfirmModal')" style="flex:1;padding:12px;border-radius:12px;border:1.5px solid #d0eaf8;background:white;font-family:'Noto Sans KR',sans-serif;font-weight:700;cursor:pointer;">취소</button>
+        <button onclick="confirmPremium()" style="flex:2;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#4a9eff,#1a6fd4);color:white;font-family:'Noto Sans KR',sans-serif;font-weight:700;cursor:pointer;">구매!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프리미엄 결과 오버레이 -->
+  <div class="card-zoom-overlay" id="shopResultOverlay">
+    <div class="zoom-wrap">
+      <div style="font-size:0.8rem;color:rgba(255,255,255,0.7);margin-bottom:4px;">클릭해서 카드 확인!</div>
+      <div class="shop-result-wrap" id="shopResultWrap" onclick="flipShopCard()">
+        <div class="shop-result-inner" id="shopResultInner">
+          <div class="shop-result-back">
+            <div class="shop-result-aurora" id="shopResultAurora"></div>
+            <div class="shop-back-logo">PREMIUM</div>
+            <div class="shop-back-star">⭐</div>
+          </div>
+          <div class="shop-result-front grade-n" id="shopResultFront">
+            <div class="zcard-header">
+              <span class="zcard-name" id="shopResName"></span>
+              <span class="zcard-grade" id="shopResGrade"></span>
+            </div>
+            <div class="zcard-art"><img id="shopResImg" src="" alt=""></div>
+            <div class="zcard-footer">
+              <div class="zcard-sep" id="shopResSep"></div>
+              <div class="zcard-slogan" id="shopResSlogan"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="zoom-close" onclick="closeShopResult()">닫기</button>
+    </div>
+  </div>
+
 </div>
 
 <!-- 카드 확대 모달 -->
@@ -874,7 +1056,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
       <div class="zoom-holo" id="zoomHolo"></div>
     </div>
     <div class="zoom-info" id="zoomInfo"></div>
-    <button class="exchange-btn" id="exchangeBtn" style="display:none" onclick="exchangeCard()">🎴 뽑기권으로 교환 (10장 → 1장)</button>
+    <button class="exchange-btn" id="exchangeBtn" style="display:none" onclick="exchangeCard()">뽑기권으로 교환 (10장 → 1장)</button>
     <button class="zoom-close" onclick="closeZoomBtn()">닫기</button>
   </div>
 </div>
@@ -882,7 +1064,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
 <!-- 확률 모달 -->
 <div class="modal-overlay" id="probModal" onclick="closeModalOut(event,'probModal')">
   <div class="modal">
-    <div class="modal-title">🎲 뽑기 확률</div>
+    <div class="modal-title">뽑기 확률</div>
     <table class="prob-table">
       <thead><tr><th>등급</th><th>확률</th><th></th></tr></thead>
       <tbody>
@@ -901,14 +1083,14 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
 <!-- 도움말 모달 -->
 <div class="modal-overlay" id="helpModal" onclick="closeModalOut(event,'helpModal')">
   <div class="modal">
-    <div class="modal-title">🌍 게임 설명</div>
+    <div class="modal-title">게임 설명</div>
     <div class="help-item"><div class="help-icon">📅</div><div><div class="help-text-title">매일 뽑기권</div><div class="help-text-desc">매일 처음 접속하면 뽑기권 10장을 드려요!</div></div></div>
     <div class="help-item"><div class="help-icon">⏰</div><div><div class="help-text-title">1시간 접속 보너스</div><div class="help-text-desc">오늘 1시간 이상 접속하면 추가로 1장을 드려요.</div></div></div>
     <div class="help-item"><div class="help-icon">🐾</div><div><div class="help-text-title">클릭 뽑기</div><div class="help-text-desc">하루에 1번, 500번 클릭하면 뽑기권 1장을 드려요!</div></div></div>
     <div class="help-item"><div class="help-icon">🎴</div><div><div class="help-text-title">카드 수집</div><div class="help-text-desc">카드를 수집북에 모아보세요. 카드를 클릭하면 크게 볼 수 있어요!</div></div></div>
     <div class="help-item"><div class="help-icon">🔄</div><div><div class="help-text-title">카드 교환</div><div class="help-text-desc">같은 카드가 10장 이상이면 뽑기권 1장으로 교환할 수 있어요!</div></div></div>
     <div class="help-item"><div class="help-icon">💾</div><div><div class="help-text-title">자동 저장</div><div class="help-text-desc">수집한 카드는 이 기기에 자동으로 저장돼요.</div></div></div>
-    <button class="modal-close" onclick="closeModal('helpModal')">시작하기 🎉</button>
+    <button class="modal-close" onclick="closeModal('helpModal')">시작하기</button>
   </div>
 </div>
 
@@ -929,7 +1111,11 @@ const CARDS = [
   { id:'pin_r',  name:'핀초코', slogan:'"아! 머리깨져-!"',              desc:'', grade:'r',  img:'레어펭귄.png' },
   { id:'pin_sr', name:'핀초코', slogan:'"호이야 후이야..."',             desc:'', grade:'sr', img:'슈퍼레어펭귄.png' },
   { id:'pin_ur', name:'핀초코', slogan:'"데 데... 대머리야..!"',        desc:'', grade:'ur', img:'울트라레어펭귄.png' },
-  { id:'pin_lg', name:'핀초코', slogan:'"눈을 뜨니.. 여기가 어딩교"',  desc:'', grade:'lg', img:'레전드펭귄.png' },
+  { id:'luka_n',  name:'루카뇽', slogan:'"엄마?? 엄마?!!!"',           desc:'', grade:'n',  img:'노말공룡.png' },
+  { id:'luka_r',  name:'루카뇽', slogan:'"이렇게 하면..! 후흡!!"',      desc:'', grade:'r',  img:'레어공룡.png' },
+  { id:'luka_sr', name:'루카뇽', slogan:'"냠냠 으앗 다 녹잖아??"',      desc:'', grade:'sr', img:'슈퍼레어공룡.png' },
+  { id:'luka_ur', name:'루카뇽', slogan:'"네~ 뇽랏샤이마세~"',           desc:'', grade:'ur', img:'울트라레어공룡.png' },
+  { id:'luka_lg', name:'루카뇽', slogan:'"내가 왕이다! 얼른 아이스크림을 가져오너라!"', desc:'', grade:'lg', img:'레전드공룡.png' },
 ];
 
 const GRADE_LABEL = {n:'N',r:'R',sr:'SR',ur:'UR',lg:'LEGEND'};
@@ -953,7 +1139,7 @@ function loadState() {
   if (state.lastLogin !== today) {
     state.lastLogin=today;
     state.tickets+=10;
-    setTimeout(()=>showToast('📅 매일 접속 보너스! 뽑기권 +10장'), 600);
+    setTimeout(()=>showToast('매일 접속 보너스! 뽑기권 +10장'), 600);
   }
   saveState();
 }
@@ -966,7 +1152,7 @@ function checkMidnight() {
     loadState();
     updateUI();
     renderGrid();
-    showToast('🌙 날짜가 바뀌었어요! 뽑기권 +5장');
+    showToast('날짜가 바뀌었어요! 뽑기권 +5장');
   }
 }
 setInterval(checkMidnight, 60000);
@@ -1023,7 +1209,7 @@ function drawCard() {
   document.getElementById('drawBtn').style.display='none';
   document.getElementById('nextDrawBtn').style.display='';
   const isNew=state.collection[card.id]===1;
-  showToast((isNew?'🆕 NEW! ':'✨ ')+card.name+' 획득!');
+  showToast((isNew?'NEW! ':'✨ ')+card.name+' 획득!');
   updateUI(); renderGrid();
 }
 function onDrawClick(){ if(!isFlipped&&state.tickets>0) drawCard(); }
@@ -1035,31 +1221,48 @@ function resetDraw(){
 }
 
 // 필터
-let currentFilter = 'all';
-function setFilter(filter, btn) {
-  currentFilter = filter;
-  document.querySelectorAll('.col-filter-btn').forEach(b=>b.classList.remove('active'));
+let currentChar = 'all';
+let currentGrade = 'all';
+
+function setCharFilter(val, btn) {
+  currentChar = val;
+  document.querySelectorAll('#charFilterRow .col-filter-pill').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderGrid();
 }
 
+function setGradeFilter(val, btn) {
+  currentGrade = val;
+  document.querySelectorAll('#gradeFilterRow .col-filter-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+function applyFilters() { renderGrid(); }
+
+function setFilter(filter, btn) {
+  // 합성탭 등급 필터용
+  currentFilter = filter;
+  document.querySelectorAll('.synth-grade-filter .col-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
 // 수집북
-function renderGrid(){
+function renderGrid(charFilter, gradeFilter){
+  charFilter = charFilter !== undefined ? charFilter : currentChar;
+  gradeFilter = gradeFilter !== undefined ? gradeFilter : currentGrade;
   const grid=document.getElementById('cardGrid');
   grid.innerHTML='';
 
-  // 필터 적용
   let filtered = CARDS;
-  if(currentFilter === 'rumi') filtered = CARDS.filter(c=>c.id.startsWith('rumi'));
-  else if(currentFilter === 'toto') filtered = CARDS.filter(c=>c.id.startsWith('toto'));
-  else if(currentFilter === 'pin') filtered = CARDS.filter(c=>c.id.startsWith('pin'));
-  else if(['n','r','sr','ur','lg'].includes(currentFilter)) filtered = CARDS.filter(c=>c.grade===currentFilter);
+  if(charFilter !== 'all') filtered = filtered.filter(c=>c.id.startsWith(charFilter));
+  if(gradeFilter !== 'all') filtered = filtered.filter(c=>c.grade===gradeFilter);
 
   const owned = filtered.filter(c=>state.collection[c.id]>0);
   const locked = filtered.filter(c=>!state.collection[c.id]);
 
   if(owned.length===0 && locked.length===0){
-    grid.innerHTML='<div class="col-empty">아직 카드가 없어요!<br>뽑기권을 사용해보세요 🎴</div>';
+    grid.innerHTML='<div class="col-empty">아직 카드가 없어요!<br>뽑기권을 사용해보세요</div>';
     return;
   }
 
@@ -1092,14 +1295,14 @@ function handleClick(e){
   el.className='float-num'; el.textContent='+1';
   el.style.left=(e.clientX-15)+'px'; el.style.top=(e.clientY-20)+'px';
   document.body.appendChild(el); setTimeout(()=>el.remove(),800);
-  if(state.clickCount>=500){state.clickDone=true;state.tickets++;showToast('🎉 500번 달성! 뽑기권 +1장!');}
+  if(state.clickCount>=500){state.clickDone=true;state.tickets++;showToast('500번 달성! 뽑기권 +1장!');}
   saveState(); updateUI();
 }
 
 // 세션 타이머
 setInterval(()=>{
   state.sessionMinutes=(state.sessionMinutes||0)+1;
-  if(state.sessionMinutes>=60&&!state.sessionBonus){state.sessionBonus=true;state.tickets++;showToast('⏰ 1시간 접속 달성! 뽑기권 +1장!');}
+  if(state.sessionMinutes>=60&&!state.sessionBonus){state.sessionBonus=true;state.tickets++;showToast('1시간 접속 달성! 뽑기권 +1장!');}
   saveState(); updateUI();
 },60000);
 
@@ -1121,7 +1324,7 @@ function updateUI(){
   document.getElementById('clickText').style.display=state.clickDone?'none':'';
   document.getElementById('clickBtn').disabled=state.clickDone;
   const db=document.getElementById('drawBtn');
-  db.textContent=state.tickets>0?`🎴 뽑기권 사용 (${state.tickets}장 보유)`:'뽑기권이 없어요 😢';
+  db.textContent=state.tickets>0?`뽑기권 사용 (${state.tickets}장 보유)`:'뽑기권이 없어요 😢';
   db.disabled=state.tickets<=0;
 }
 
@@ -1182,7 +1385,7 @@ function exchangeCard(){
   state.collection[currentZoomCard.id] -= 10;
   state.tickets += 1;
   saveState();
-  showToast('🎴 뽑기권 1장으로 교환했어요!');
+  showToast('뽑기권 1장으로 교환했어요!');
   const newCnt = state.collection[currentZoomCard.id];
   document.getElementById('zoomInfo').innerHTML = newCnt > 1 ? `<span class="zoom-dup">×${newCnt}장 보유</span>` : '';
   document.getElementById('exchangeBtn').style.display = newCnt >= 10 ? '' : 'none';
@@ -1196,13 +1399,17 @@ function closeZoomBtn(){ document.getElementById('zoomOverlay').classList.remove
 function switchTab(tab, btn) {
   document.querySelectorAll('.page-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  document.getElementById('mainArea').style.display = 'none';
+  document.getElementById('synthSection').classList.remove('show');
+  document.getElementById('shopSection').classList.remove('show');
   if(tab === 'main') {
     document.getElementById('mainArea').style.display = '';
-    document.getElementById('synthSection').classList.remove('show');
-  } else {
-    document.getElementById('mainArea').style.display = 'none';
+  } else if(tab === 'synth') {
     document.getElementById('synthSection').classList.add('show');
     setSynthGrade('n', document.querySelector('.synth-grade-filter .col-filter-btn'));
+  } else if(tab === 'shop') {
+    document.getElementById('shopSection').classList.add('show');
+    document.getElementById('shopTicketCount').textContent = state.tickets;
   }
 }
 
@@ -1326,7 +1533,7 @@ function doSynth() {
   setTimeout(() => {
     document.getElementById('synthResultInner').classList.add('flipped');
     const isUp = resultCard.grade !== grade;
-    showToast(isUp ? '🎉 등급 UP! ' + resultCard.name + ' 획득!' : '✨ ' + resultCard.name + ' 획득!');
+    showToast(isUp ? '등급 UP! ' + resultCard.name + ' 획득!' : '✨ ' + resultCard.name + ' 획득!');
   }, 300);
 
   synthSlots = [null, null, null];
@@ -1354,6 +1561,77 @@ function openZoomFromSynth() {
   if(!document.getElementById('synthResultInner').classList.contains('flipped')) return;
   if(!synthResultCard) return;
   openZoom(synthResultCard, state.collection[synthResultCard.id] || 1);
+}
+
+// 상점
+let shopResultCard = null;
+function buyPremium() {
+  if(state.tickets < 10) { showToast('뽑기권이 부족해요! 10장이 필요해요 😢'); return; }
+  showModal('shopConfirmModal');
+}
+
+function confirmPremium() {
+  closeModal('shopConfirmModal');
+  state.tickets -= 10;
+  saveState();
+  updateUI();
+  document.getElementById('shopTicketCount').textContent = state.tickets;
+
+  // SR 75% / UR 20% / LG 5%
+  const r = Math.random();
+  let grade = r < 0.60 ? 'sr' : r < 0.85 ? 'ur' : 'lg';
+  const pool = CARDS.filter(c => c.grade === grade);
+  const card = pool[Math.floor(Math.random() * pool.length)];
+  shopResultCard = card;
+
+  if(!state.collection[card.id]) state.collection[card.id] = 0;
+  state.collection[card.id]++;
+  saveState();
+
+  // 결과 카드 세팅
+  const front = document.getElementById('shopResultFront');
+  front.className = 'shop-result-front grade-' + card.grade;
+  document.getElementById('shopResName').textContent = card.name;
+  document.getElementById('shopResGrade').textContent = GRADE_LABEL[card.grade];
+  document.getElementById('shopResImg').src = card.img;
+  document.getElementById('shopResSlogan').textContent = card.slogan;
+
+  const sep = document.getElementById('shopResSep');
+  const sepColors = {n:'rgba(150,150,150,0.4)',r:'linear-gradient(90deg,transparent,#4a9eff,transparent)',sr:'linear-gradient(90deg,transparent,#c084fc,transparent)',ur:'linear-gradient(90deg,transparent,#fbbf24,transparent)',lg:'linear-gradient(90deg,transparent,#ff6b6b,#ffd93d,#4d96ff,transparent)'};
+  sep.style.background = sepColors[card.grade];
+
+  // UR/LG 오로라
+  const aurora = document.getElementById('shopResultAurora');
+  if(grade === 'ur') {
+    aurora.style.background = 'repeating-linear-gradient(120deg,rgba(255,210,80,0.35) 0%,rgba(255,160,30,0.25) 25%,rgba(255,240,120,0.3) 50%,rgba(255,210,80,0.35) 75%)';
+    aurora.style.opacity = '1';
+  } else if(grade === 'lg') {
+    aurora.style.background = 'repeating-linear-gradient(120deg,rgba(255,80,80,0.22) 0%,rgba(255,200,50,0.22) 15%,rgba(80,220,120,0.22) 30%,rgba(80,160,255,0.22) 45%,rgba(180,80,255,0.22) 60%,rgba(255,80,80,0.22) 75%)';
+    aurora.style.opacity = '1';
+  } else {
+    aurora.style.opacity = '0';
+  }
+
+  // 뒤집기 초기화 후 오버레이 표시
+  document.getElementById('shopResultInner').classList.remove('flipped');
+  document.getElementById('shopResultOverlay').classList.add('show');
+  renderGrid();
+}
+
+function flipShopCard() {
+  const inner = document.getElementById('shopResultInner');
+  if(inner.classList.contains('flipped')) {
+    if(shopResultCard) openZoom(shopResultCard, state.collection[shopResultCard.id]||1);
+    return;
+  }
+  if(shopResultCard && ['sr','ur','lg'].includes(shopResultCard.grade)) gradeFlash(shopResultCard.grade);
+  inner.classList.add('flipped');
+  showToast('✨ ' + (shopResultCard ? shopResultCard.name : '') + ' 획득!');
+}
+
+function closeShopResult() {
+  document.getElementById('shopResultOverlay').classList.remove('show');
+  shopResultCard = null;
 }
 
 function shareLink(){
