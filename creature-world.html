@@ -391,6 +391,52 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 /* 합성 탭 */
 .synth-section { display:none; }
 .synth-section.show { display:block; }
+
+/* 도감 */
+.dex-wrap { display: flex; flex-direction: column; gap: 20px; }
+.dex-char-block {
+  background: white; border-radius: 20px; padding: 18px;
+  border: 1.5px solid #d0eaf8; box-shadow: 0 2px 12px rgba(74,158,255,0.06);
+}
+.dex-char-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.dex-char-name { font-size: 0.95rem; font-weight: 900; color: var(--text); }
+.dex-char-count { font-size: 0.72rem; color: var(--muted); background: #e8f4fd; padding: 3px 10px; border-radius: 99px; }
+.dex-card-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.dex-card {
+  width: 100px; aspect-ratio: 2/3; border-radius: 10px; position: relative;
+  overflow: hidden; border: 2px solid #d0eaf8; background: #f0f8ff;
+  cursor: pointer; transition: transform 0.2s;
+}
+.dex-card:hover:not(.dex-locked) { transform: translateY(-4px) scale(1.03); }
+.dex-card img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
+.dex-card .dex-card-footer {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 16px 6px 6px;
+  background: linear-gradient(to top, rgba(0,0,0,0.82), transparent);
+}
+.dex-card .dex-grade-badge {
+  font-size: 0.58rem; font-weight: 900; padding: 1px 6px; border-radius: 99px; display: inline-block;
+}
+.dex-card .dex-dup {
+  position: absolute; top: 4px; right: 4px;
+  background: rgba(0,0,0,0.65); color: #fbbf24;
+  font-size: 0.6rem; padding: 1px 5px; border-radius: 99px; font-weight: 700;
+}
+.dex-locked { filter: grayscale(1); opacity: 0.35; cursor: default; }
+.dex-locked .dex-card-img-wrap { display: none; }
+.dex-locked::before {
+  content: '?'; position: absolute; top: 0; left: 0; right: 0; bottom: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; color: #b0c8d8; font-weight: 900; font-family: 'Nunito', sans-serif;
+}
+.dex-card.grade-sr::after { content:''; background: repeating-linear-gradient(120deg,rgba(192,132,252,0.2) 0%,rgba(100,180,255,0.15) 25%,rgba(255,100,200,0.15) 50%,rgba(192,132,252,0.2) 75%); background-size:200% 200%; animation:colAuroraSR 3s ease-in-out infinite; opacity:1; }
+.dex-card.grade-ur::after { content:''; background: repeating-linear-gradient(120deg,rgba(255,210,80,0.3) 0%,rgba(255,160,30,0.2) 25%,rgba(255,240,120,0.25) 50%,rgba(255,210,80,0.3) 75%); background-size:200% 200%; animation:colAuroraUR 2.5s ease-in-out infinite; opacity:1; }
+.dex-card.grade-lg::after { content:''; background: repeating-linear-gradient(0deg,rgba(255,80,80,0.2) 0%,rgba(255,200,50,0.2) 15%,rgba(80,220,120,0.2) 30%,rgba(80,160,255,0.2) 45%,rgba(180,80,255,0.2) 60%,rgba(255,80,80,0.2) 75%); background-size:300% 300%; animation:colAuroraLG 2s linear infinite; opacity:1; }
+.dex-card.grade-lg { animation: colLGBorder 2s linear infinite; }
+.dex-card.grade-ur { animation: colURBorder 2s ease-in-out infinite; }
 .main-area.hidden { display:none; }
 
 .synth-top {
@@ -711,7 +757,17 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   .draw-section{flex:none;width:100%;max-width:300px;}
 }
 
-/* 상점 */
+/* 페이지네이션 */
+.pagination { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:16px; }
+.page-arrow {
+  padding:8px 20px; border-radius:12px; border:1.5px solid #d0eaf8;
+  background:white; color:var(--blue-dark); font-size:1rem; font-weight:700;
+  cursor:pointer; transition:all 0.2s;
+  box-shadow:0 2px 8px rgba(74,158,255,0.1);
+}
+.page-arrow:hover:not(:disabled) { background:#e8f4fd; border-color:var(--blue); transform:translateY(-1px); }
+.page-arrow:disabled { opacity:0.3; cursor:not-allowed; transform:none; }
+.page-info { font-size:0.82rem; color:var(--muted); font-weight:700; min-width:50px; text-align:center; }
 .shop-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
 .shop-item {
   background:white; border-radius:20px; padding:24px;
@@ -826,6 +882,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
     <button class="page-tab active" onclick="switchTab('main',this)">뽑기</button>
     <button class="page-tab" onclick="switchTab('synth',this)">합성</button>
     <button class="page-tab" onclick="switchTab('shop',this)">상점</button>
+    <button class="page-tab" onclick="switchTab('dex',this)">도감</button>
   </div>
 
   <div class="main-area" id="mainArea">
@@ -887,6 +944,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
           <button class="col-filter-pill" onclick="setCharFilter('toto',this)">토토리</button>
           <button class="col-filter-pill" onclick="setCharFilter('pin',this)">핀초코</button>
           <button class="col-filter-pill" onclick="setCharFilter('luka',this)">루카뇽</button>
+          <button class="col-filter-pill" onclick="setCharFilter('misti',this)">미스티</button>
         </div>
         <div class="col-filter-row" id="gradeFilterRow">
           <button class="col-filter-pill active" onclick="setGradeFilter('all',this)">전체</button>
@@ -898,6 +956,11 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
         </div>
       </div>
       <div class="card-grid" id="cardGrid"></div>
+      <div class="pagination" id="pagination" style="display:none;">
+        <button class="page-arrow" id="prevBtn" onclick="changePage(-1)">← 이전</button>
+        <span class="page-info" id="pageInfo"></span>
+        <button class="page-arrow" id="nextBtn" onclick="changePage(1)">다음 →</button>
+      </div>
     </div>
   </div>
 
@@ -1043,6 +1106,11 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 
 </div>
 
+<!-- 도감 탭 -->
+<div class="synth-section" id="dexSection">
+  <div class="dex-wrap" id="dexWrap"></div>
+</div>
+
 <!-- 카드 확대 모달 -->
 <div class="card-zoom-overlay" id="zoomOverlay" onclick="closeZoom(event)">
   <div class="zoom-wrap">
@@ -1113,15 +1181,22 @@ const CARDS = [
   { id:'toto_r',  name:'토토리', slogan:'"이것만 뛰면 만두 10개..!"',     desc:'', grade:'r',  img:'레어햄스터.png' },
   { id:'toto_sr', name:'토토리', slogan:'"잡았다! 오늘 저녁은 생선이다!"', desc:'', grade:'sr', img:'슈퍼레어햄스터.png' },
   { id:'toto_ur', name:'토토리', slogan:'"해바라기씨는 너한테 줄 건 없으ㄹ으어어.."', desc:'', grade:'ur', img:'울트라레어햄스터.png' },
+  { id:'toto_lg', name:'토토리', slogan:'"짠— 놀랐지?"',                              desc:'', grade:'lg', img:'레전드햄스터.png' },
   { id:'pin_n',  name:'핀초코', slogan:'"첨벙첨벙~ 물이 최고야!"',      desc:'', grade:'n',  img:'노말펭귄.png' },
   { id:'pin_r',  name:'핀초코', slogan:'"아! 머리깨져-!"',              desc:'', grade:'r',  img:'레어펭귄.png' },
   { id:'pin_sr', name:'핀초코', slogan:'"호이야 후이야..."',             desc:'', grade:'sr', img:'슈퍼레어펭귄.png' },
   { id:'pin_ur', name:'핀초코', slogan:'"데 데... 대머리야..!"',        desc:'', grade:'ur', img:'울트라레어펭귄.png' },
+  { id:'pin_lg', name:'핀초코', slogan:'"눈을 뜨니.. 여기가 어딩교"',   desc:'', grade:'lg', img:'레전드펭귄.png' },
   { id:'luka_n',  name:'루카뇽', slogan:'"엄마?? 엄마?!!!"',           desc:'', grade:'n',  img:'노말공룡.png' },
   { id:'luka_r',  name:'루카뇽', slogan:'"이렇게 하면..! 후흡!!"',      desc:'', grade:'r',  img:'레어공룡.png' },
   { id:'luka_sr', name:'루카뇽', slogan:'"냠냠 으앗 다 녹잖아??"',      desc:'', grade:'sr', img:'슈퍼레어공룡.png' },
   { id:'luka_ur', name:'루카뇽', slogan:'"네~ 뇽랏샤이마세~"',           desc:'', grade:'ur', img:'울트라레어공룡.png' },
   { id:'luka_lg', name:'루카뇽', slogan:'"내가 왕이다! 얼른 아이스크림을 가져오너라!"', desc:'', grade:'lg', img:'레전드공룡.png' },
+  { id:'misti_n',  name:'미스티', slogan:'"숨바꼭질 재밌다... 나 못찾겠지?"',  desc:'', grade:'n',  img:'노말귀신.png' },
+  { id:'misti_r',  name:'미스티', slogan:'"해파리야~ 나도 흐느적댄다?"',        desc:'', grade:'r',  img:'레어귀신.png' },
+  { id:'misti_sr', name:'미스티', slogan:'"이건?? 나잖아!!"',                   desc:'', grade:'sr', img:'슈퍼레어귀신.png' },
+  { id:'misti_ur', name:'미스티', slogan:'"시원하다~ 칠~!"',                    desc:'', grade:'ur', img:'울트라레어귀신.png' },
+  { id:'misti_lg', name:'미스티', slogan:'"울면 사탕 안준다??!!"',              desc:'', grade:'lg', img:'레전드귀신.png' },
 ];
 
 const GRADE_LABEL = {n:'N',r:'R',sr:'SR',ur:'UR',lg:'LEGEND'};
@@ -1229,9 +1304,12 @@ function resetDraw(){
 // 필터
 let currentChar = 'all';
 let currentGrade = 'all';
+let currentPage = 0;
+const CARDS_PER_PAGE = 6;
 
 function setCharFilter(val, btn) {
   currentChar = val;
+  currentPage = 0;
   document.querySelectorAll('#charFilterRow .col-filter-pill').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderGrid();
@@ -1239,15 +1317,20 @@ function setCharFilter(val, btn) {
 
 function setGradeFilter(val, btn) {
   currentGrade = val;
+  currentPage = 0;
   document.querySelectorAll('#gradeFilterRow .col-filter-pill').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderGrid();
 }
 
-function applyFilters() { renderGrid(); }
+function applyFilters() { currentPage = 0; renderGrid(); }
+
+function changePage(dir) {
+  currentPage += dir;
+  renderGrid();
+}
 
 function setFilter(filter, btn) {
-  // 합성탭 등급 필터용
   currentFilter = filter;
   document.querySelectorAll('.synth-grade-filter .col-filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
@@ -1257,42 +1340,62 @@ function setFilter(filter, btn) {
 function renderGrid(charFilter, gradeFilter){
   charFilter = charFilter !== undefined ? charFilter : currentChar;
   gradeFilter = gradeFilter !== undefined ? gradeFilter : currentGrade;
-  const grid=document.getElementById('cardGrid');
-  grid.innerHTML='';
+  currentChar = charFilter;
+  currentGrade = gradeFilter;
+
+  const grid = document.getElementById('cardGrid');
+  console.log('renderGrid called, grid:', grid, 'cards:', CARDS.length, 'state:', JSON.stringify(state.collection));
+  if(!grid) return;
+  grid.innerHTML = '';
 
   let filtered = CARDS;
   if(charFilter !== 'all') filtered = filtered.filter(c=>c.id.startsWith(charFilter));
   if(gradeFilter !== 'all') filtered = filtered.filter(c=>c.grade===gradeFilter);
 
-  const owned = filtered.filter(c=>state.collection[c.id]>0);
-  const locked = filtered.filter(c=>!state.collection[c.id]);
+  const owned = filtered.filter(c=>(state.collection[c.id]||0)>0);
+  const locked = filtered.filter(c=>!(state.collection[c.id]>0));
+  const allCards = [...owned, ...locked];
 
-  if(owned.length===0 && locked.length===0){
-    grid.innerHTML='<div class="col-empty">아직 카드가 없어요!<br>뽑기권을 사용해보세요</div>';
+  const totalPages = Math.ceil(allCards.length / CARDS_PER_PAGE);
+  if(currentPage >= totalPages) currentPage = Math.max(0, totalPages - 1);
+
+  const pageCards = allCards.slice(currentPage * CARDS_PER_PAGE, (currentPage + 1) * CARDS_PER_PAGE);
+
+  if(allCards.length === 0){
+    grid.innerHTML = '<div class="col-empty">아직 카드가 없어요!<br>뽑기권을 사용해보세요</div>';
+    document.getElementById('pagination').style.display = 'none';
     return;
   }
 
-  owned.forEach(card=>{
-    const cnt=state.collection[card.id];
-    const div=document.createElement('div');
-    div.className='col-card grade-'+card.grade;
-    div.innerHTML=`
-      <img src="${card.img}" alt="${card.name}">
-      <div class="col-card-footer">
-        <div class="col-name">${card.name}</div>
-        <span class="col-grade">${GRADE_LABEL[card.grade]}</span>
-      </div>
-      ${cnt>1?`<div class="dup">×${cnt}</div>`:''}
-    `;
-    div.onclick=()=>openZoom(card, cnt);
+  pageCards.forEach(card => {
+    const cnt = state.collection[card.id] || 0;
+    const isLocked = cnt === 0;
+    const div = document.createElement('div');
+    div.className = 'col-card grade-' + card.grade + (isLocked ? ' locked' : '');
+    if(isLocked) {
+      div.innerHTML = '';
+    } else {
+      div.innerHTML = `
+        <img src="${card.img}" alt="${card.name}">
+        <div class="col-card-footer">
+          <div class="col-name">${card.name}</div>
+          <span class="col-grade">${GRADE_LABEL[card.grade]}</span>
+        </div>
+        ${cnt>1?`<div class="dup">×${cnt}</div>`:''}
+      `;
+      div.onclick = () => openZoom(card, cnt);
+    }
     grid.appendChild(div);
   });
 
-  locked.forEach(()=>{
-    const div=document.createElement('div');
-    div.className='col-card locked';
-    grid.appendChild(div);
-  });
+  // 페이지네이션 업데이트
+  const pagination = document.getElementById('pagination');
+  if(pagination) {
+    pagination.style.display = totalPages <= 1 ? 'none' : 'flex';
+    document.getElementById('prevBtn').disabled = currentPage === 0;
+    document.getElementById('nextBtn').disabled = currentPage >= totalPages - 1;
+    document.getElementById('pageInfo').textContent = (currentPage + 1) + ' / ' + totalPages;
+  }
 }
 function handleClick(e){
   if(state.clickDone){showToast('오늘 클릭 뽑기는 이미 완료했어요!');return;}
@@ -1336,7 +1439,8 @@ function updateUI(){
     randomBtn.disabled = randomDone;
     document.getElementById('randomDoneText').textContent = randomDone ? '오늘 이미 받았어요 ✓' : '';
   }
-  db.textContent=state.tickets>0?`뽑기권 사용 (${state.tickets}장 보유)`:'뽑기권이 없어요 😢';
+  const db=document.getElementById('drawBtn');
+  db.textContent=state.tickets>0?`뽑기권 사용 (${state.tickets}장 보유)`:'뽑기권이 없어요';
   db.disabled=state.tickets<=0;
 }
 
@@ -1414,6 +1518,7 @@ function switchTab(tab, btn) {
   document.getElementById('mainArea').style.display = 'none';
   document.getElementById('synthSection').classList.remove('show');
   document.getElementById('shopSection').classList.remove('show');
+  document.getElementById('dexSection').classList.remove('show');
   if(tab === 'main') {
     document.getElementById('mainArea').style.display = '';
   } else if(tab === 'synth') {
@@ -1422,6 +1527,9 @@ function switchTab(tab, btn) {
   } else if(tab === 'shop') {
     document.getElementById('shopSection').classList.add('show');
     document.getElementById('shopTicketCount').textContent = state.tickets;
+  } else if(tab === 'dex') {
+    document.getElementById('dexSection').classList.add('show');
+    renderDex();
   }
 }
 
@@ -1681,8 +1789,55 @@ function showToast(msg){
   toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
 }
 
+// 도감
+const DEX_CHARS = [
+  { key: 'rumi',  label: '루미' },
+  { key: 'toto',  label: '토토리' },
+  { key: 'pin',   label: '핀초코' },
+  { key: 'luka',  label: '루카뇽' },
+  { key: 'misti', label: '미스티' },
+];
+const DEX_GRADES = ['n','r','sr','ur','lg'];
+
+function renderDex() {
+  const wrap = document.getElementById('dexWrap');
+  wrap.innerHTML = '';
+  DEX_CHARS.forEach(char => {
+    const cards = DEX_GRADES.map(g => CARDS.find(c => c.id === char.key + '_' + g)).filter(Boolean);
+    const owned = cards.filter(c => state.collection[c.id] > 0).length;
+    const block = document.createElement('div');
+    block.className = 'dex-char-block';
+    block.innerHTML = `
+      <div class="dex-char-header">
+        <div class="dex-char-name">${char.label}</div>
+        <div class="dex-char-count">${owned} / ${cards.length}</div>
+      </div>
+      <div class="dex-card-row">
+        ${cards.map(card => {
+          const cnt = state.collection[card.id] || 0;
+          const locked = cnt === 0;
+          const gradeColors = {n:'#555',r:'#1a3a6a',sr:'#2d1b4e',ur:'#3a2800',lg:''};
+          const gradeTextColors = {n:'#ccc',r:'#7eb8ff',sr:'#d4a8ff',ur:'#ffd97a',lg:'#fff'};
+          const gradeBg = card.grade === 'lg'
+            ? 'background:linear-gradient(90deg,#ff6b6b,#4d96ff,#c77dff);'
+            : `background:${gradeColors[card.grade]};`;
+          return `
+            <div class="dex-card grade-${card.grade} ${locked ? 'dex-locked' : ''}"
+              onclick="${locked ? '' : `openZoom(CARDS.find(c=>c.id==='${card.id}'),${cnt})`}">
+              ${locked ? '' : `<img src="${card.img}" alt="${card.name}">`}
+              ${cnt > 1 ? `<div class="dex-dup">×${cnt}</div>` : ''}
+              <div class="dex-card-footer" style="display:block!important;">
+                <span class="dex-grade-badge" style="${gradeBg}color:${gradeTextColors[card.grade]};">${GRADE_LABEL[card.grade]}</span>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`;
+    wrap.appendChild(block);
+  });
+}
+
 // INIT
-loadState(); updateUI(); renderGrid();
+loadState(); updateUI(); renderGrid('all', 'all');
 </script>
 </body>
 </html>
