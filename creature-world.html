@@ -404,31 +404,31 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 .community-list { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
 .comm-loading { text-align:center; color:var(--muted); padding:40px; font-size:0.85rem; grid-column:1/-1; }
 .comm-post {
-  background:white; border-radius:16px; padding:12px;
+  background:white; border-radius:16px; padding:10px;
   border:1.5px solid #d0eaf8; box-shadow:0 2px 8px rgba(74,158,255,0.06);
-  display:flex; flex-direction:column; gap:8px; cursor:pointer;
+  display:flex; flex-direction:column; gap:6px; cursor:pointer;
   transition:transform 0.15s, box-shadow 0.15s;
 }
 .comm-post:hover { transform:translateY(-3px); box-shadow:0 6px 18px rgba(74,158,255,0.13); }
 .comm-post-card {
-  width:100%; aspect-ratio:2/3; border-radius:10px;
-  overflow:hidden; border:1.5px solid #d0eaf8;
+  width:100%; aspect-ratio:2/3; border-radius:8px;
+  overflow:hidden; border:1.5px solid #d0eaf8; max-height:120px;
 }
-.comm-post-card img { width:100%; height:100%; object-fit:cover; object-position:center 30%; }
+.comm-post-card img { width:100%; height:100%; object-fit:cover; object-position:center 20%; }
 .comm-post-card-empty {
-  width:100%; aspect-ratio:2/3; border-radius:10px;
+  width:100%; aspect-ratio:2/3; border-radius:8px; max-height:120px;
   background:#f0f8ff; border:1.5px solid #d0eaf8;
   display:flex; align-items:center; justify-content:center;
-  font-size:1.5rem; color:#b0c8d8;
+  font-size:1.2rem; color:#b0c8d8;
 }
 .comm-post-body { flex:1; }
-.comm-post-nickname { font-weight:900; font-size:0.82rem; color:var(--text); margin-bottom:3px; }
-.comm-post-text { font-size:0.75rem; color:#555; line-height:1.4; word-break:break-all; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.comm-post-nickname { font-weight:900; font-size:0.78rem; color:var(--text); margin-bottom:2px; }
+.comm-post-text { font-size:0.72rem; color:#555; line-height:1.4; word-break:break-all; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 .comm-post-grade {
   display:inline-block; font-size:0.58rem; font-weight:900;
-  padding:1px 6px; border-radius:99px; margin-bottom:4px;
+  padding:1px 6px; border-radius:99px; margin-bottom:3px;
 }
-.comm-post-time { font-size:0.65rem; color:var(--muted); margin-top:4px; }
+.comm-post-time { font-size:0.62rem; color:var(--muted); margin-top:3px; }
 .comm-empty { text-align:center; color:var(--muted); padding:40px; font-size:0.85rem; grid-column:1/-1; }
 
 /* 자랑 작성 모달 */
@@ -465,6 +465,27 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   font-family:'Nunito',sans-serif;
 }
 .comm-submit-btn:hover { background:var(--blue-dark); }
+.comm-close-btn {
+  flex:1; background:#f0f8ff; color:var(--text); border:1.5px solid #d0eaf8;
+  border-radius:12px; padding:12px; font-size:0.9rem; font-weight:700;
+  cursor:pointer; font-family:'Nunito',sans-serif;
+}
+.comm-close-btn:hover { background:#d0eaf8; }
+
+/* 상세 모달 카드 틸트 */
+.post-detail-card-wrap {
+  width:140px; margin:0 auto 12px; aspect-ratio:2/3;
+  border-radius:12px; overflow:hidden; border:1.5px solid #d0eaf8;
+  position:relative; cursor:pointer;
+  transition:transform 0.1s;
+  transform-style:preserve-3d;
+}
+.post-detail-card-wrap img { width:100%; height:100%; object-fit:cover; object-position:center 20%; }
+.post-detail-holo {
+  position:absolute; inset:0; opacity:0; pointer-events:none;
+  background-size:200% 200%; mix-blend-mode:screen; border-radius:12px;
+  transition:opacity 0.3s;
+}
 .dex-wrap { display: flex; flex-direction: column; gap: 20px; }
 .dex-char-block {
   background: white; border-radius: 20px; padding: 18px;
@@ -1218,7 +1239,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
     <input class="post-nickname" id="postPassword" type="password" placeholder="삭제용 비밀번호" maxlength="20">
     <textarea class="post-text" id="postText" placeholder="한마디 남기기! (최대 50자)" maxlength="50"></textarea>
     <div style="display:flex;gap:8px;margin-top:12px;">
-      <button class="zoom-close" style="flex:1" onclick="closePostModal()">닫기</button>
+      <button class="comm-close-btn" onclick="closePostModal()">닫기</button>
       <button class="comm-submit-btn" onclick="submitPost()">올리기</button>
     </div>
   </div>
@@ -1233,7 +1254,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
     <div id="postDetailText" style="font-size:0.88rem;color:#444;line-height:1.6;margin-bottom:10px;word-break:break-all;"></div>
     <div id="postDetailTime" style="font-size:0.72rem;color:var(--muted);"></div>
     <div style="display:flex;gap:8px;margin-top:16px;">
-      <button class="zoom-close" style="flex:1" onclick="closePostDetail()">닫기</button>
+      <button class="comm-close-btn" onclick="closePostDetail()">닫기</button>
       <button class="zoom-close" style="flex:1;background:#fee2e2;color:#ef4444;border-color:#fca5a5;" onclick="deletePost()">삭제</button>
     </div>
   </div>
@@ -1339,6 +1360,8 @@ const GRADE_HOLO = {
 };
 
 let state = {};
+window.getCARDS = () => CARDS;
+window.getState = () => state;
 function loadState() {
   const today = new Date().toDateString();
   const saved = localStorage.getItem('cw_state');
@@ -1667,7 +1690,8 @@ function switchTab(tab, btn) {
     renderDex();
   } else if(tab === 'community') {
     document.getElementById('communitySection').classList.add('show');
-    loadPosts();
+    if(window.loadPosts) { window.loadPosts(); }
+    else { document.getElementById('communityList').innerHTML = '<div class="comm-loading">초기화 중... 잠시 후 다시 눌러줘</div>'; }
   }
 }
 
@@ -1943,6 +1967,7 @@ function showToast(msg){
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
 }
+window.showToast = showToast;
 
 // 도감
 const DEX_CHARS = [
@@ -2055,17 +2080,39 @@ window.openPostDetail = function(d, docId, timeStr) {
   modal.dataset.password = d.password || '';
 
   const auroraStyles = {
-    sr: 'repeating-linear-gradient(120deg,rgba(192,132,252,0.25) 0%,rgba(100,180,255,0.2) 25%,rgba(255,100,200,0.2) 50%,rgba(192,132,252,0.25) 75%)',
-    ur: 'repeating-linear-gradient(120deg,rgba(255,210,80,0.35) 0%,rgba(255,160,30,0.25) 25%,rgba(255,240,120,0.3) 50%,rgba(255,210,80,0.35) 75%)',
-    lg: 'repeating-linear-gradient(120deg,rgba(255,80,80,0.22) 0%,rgba(255,200,50,0.22) 15%,rgba(80,220,120,0.22) 30%,rgba(80,160,255,0.22) 45%,rgba(180,80,255,0.22) 60%,rgba(255,80,80,0.22) 75%)'
+    sr: 'repeating-linear-gradient(120deg,rgba(192,132,252,0.35) 0%,rgba(100,180,255,0.25) 25%,rgba(255,100,200,0.25) 50%,rgba(192,132,252,0.35) 75%)',
+    ur: 'repeating-linear-gradient(120deg,rgba(255,210,80,0.45) 0%,rgba(255,160,30,0.35) 25%,rgba(255,240,120,0.4) 50%,rgba(255,210,80,0.45) 75%)',
+    lg: 'repeating-linear-gradient(120deg,rgba(255,80,80,0.3) 0%,rgba(255,200,50,0.3) 15%,rgba(80,220,120,0.3) 30%,rgba(80,160,255,0.3) 45%,rgba(180,80,255,0.3) 60%,rgba(255,80,80,0.3) 75%)'
   };
-  const hasAurora = d.cardGrade && ['sr','ur','lg'].includes(d.cardGrade);
+  const hasHolo = d.cardGrade && ['sr','ur','lg'].includes(d.cardGrade);
 
-  document.getElementById('postDetailCard').innerHTML = d.cardImg ? `
-    <div style="width:100%;aspect-ratio:2/3;border-radius:12px;overflow:hidden;border:1.5px solid #d0eaf8;position:relative;">
-      <img src="${d.cardImg}" style="width:100%;height:100%;object-fit:cover;object-position:center 30%">
-      ${hasAurora ? `<div style="position:absolute;inset:0;background:${auroraStyles[d.cardGrade]};background-size:200% 200%;animation:colAuroraSR 3s ease-in-out infinite;mix-blend-mode:screen;"></div>` : ''}
-    </div>` : '';
+  if(d.cardImg) {
+    document.getElementById('postDetailCard').innerHTML = `
+      <div class="post-detail-card-wrap" id="postDetailCardWrap">
+        <img src="${d.cardImg}">
+        ${hasHolo ? `<div class="post-detail-holo" id="postDetailHolo" style="background:${auroraStyles[d.cardGrade]};${d.cardGrade==='lg'?'opacity:0.6;animation:legendSpin 4s linear infinite;':''}"></div>` : ''}
+      </div>`;
+
+    if(hasHolo) {
+      const wrap = document.getElementById('postDetailCardWrap');
+      const holo = document.getElementById('postDetailHolo');
+      wrap.onmousemove = (e) => {
+        const r = wrap.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width;
+        const y = (e.clientY - r.top) / r.height;
+        const rotY = (x - 0.5) * 25;
+        const rotX = (0.5 - y) * 25;
+        wrap.style.transform = `perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.05)`;
+        holo.style.opacity = '1';
+      };
+      wrap.onmouseleave = () => {
+        wrap.style.transform = '';
+        if(d.cardGrade !== 'lg') holo.style.opacity = '0';
+      };
+    }
+  } else {
+    document.getElementById('postDetailCard').innerHTML = '';
+  }
 
   document.getElementById('postDetailGrade').innerHTML = d.cardGrade
     ? `<span class="comm-post-grade" style="background:${gradeColors[d.cardGrade]};color:${gradeTextColors[d.cardGrade]}">${window.GRADE_LABEL[d.cardGrade]}</span>` : '';
@@ -2085,7 +2132,7 @@ window.deletePost = async function() {
   try {
     await deleteDoc(doc(db, 'posts', docId));
     window.closePostDetail();
-    showToast('삭제됐어!');
+    window.showToast('삭제됐어!');
     window.loadPosts();
   } catch(e) {
     alert('삭제 실패 ㅠㅠ');
@@ -2103,24 +2150,28 @@ window.submitPost = async function() {
   const cardImg = selected ? selected.dataset.img : null;
   const cardGrade = selected ? selected.dataset.grade : null;
   const cardName = selected ? selected.dataset.name : null;
+  const btn = document.querySelector('.comm-submit-btn');
+  btn.textContent = '올리는 중...'; btn.disabled = true;
   try {
-    const btn = document.querySelector('.comm-submit-btn');
-    btn.textContent = '올리는 중...'; btn.disabled = true;
-    await addDoc(collection(db, 'posts'), { nickname, text, password, cardImg, cardGrade, cardName, createdAt: serverTimestamp() });
+    await addDoc(collection(db, 'posts'), {
+      nickname, text, password, cardImg, cardGrade, cardName,
+      createdAt: serverTimestamp()
+    });
     window.closePostModal();
-    showToast('글이 올라갔어요!');
+    window.showToast('글이 올라갔어요!');
     window.loadPosts();
   } catch(e) {
-    alert('올리기 실패 ㅠㅠ 다시 시도해줘!');
-    const btn = document.querySelector('.comm-submit-btn');
+    console.error('올리기 오류:', e);
     btn.textContent = '올리기'; btn.disabled = false;
+    alert('올리기 실패 ㅠㅠ 다시 시도해줘!\n' + e.message);
   }
 };
 
 window.openPostModal = function() {
   const grid = document.getElementById('postCardGrid');
   grid.innerHTML = '';
-  const owned = CARDS.filter(c => state.collection[c.id] > 0);
+  const state = window.getState();
+  const owned = window.getCARDS().filter(c => state.collection[c.id] > 0);
   if(owned.length === 0) {
     grid.innerHTML = '<div style="font-size:0.78rem;color:var(--muted)">보유한 카드가 없어요</div>';
   } else {
@@ -2142,6 +2193,20 @@ window.openPostModal = function() {
   document.getElementById('postPassword').value = '';
   document.getElementById('postText').value = '';
   document.getElementById('postModal').classList.add('show');
+};
+
+window.closePostModal = function(e) {
+  if(!e || e.target.id === 'postModal') {
+    document.getElementById('postModal').classList.remove('show');
+    const btn = document.querySelector('.comm-submit-btn');
+    if(btn) { btn.textContent = '올리기'; btn.disabled = false; }
+  }
+};
+
+window.closePostDetail = function(e) {
+  if(!e || e.target.id === 'postDetailModal') {
+    document.getElementById('postDetailModal').classList.remove('show');
+  }
 };
 </script>
 </body>
