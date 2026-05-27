@@ -29,28 +29,28 @@ body::before {
 .wrap { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: 0 20px 60px; }
 
 /* HEADER */
-header { text-align: center; padding: 32px 0 20px; position: relative; }
+header { text-align: center; padding: 32px 0 20px; position: relative; display:flex; align-items:center; justify-content:center; }
 .logo {
   font-family: 'Nunito', sans-serif; font-size: 2.6rem; font-weight: 900; letter-spacing: 3px;
   background: linear-gradient(135deg, #2196f3, #4a9eff, #00bcd4);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
 .help-btn {
-  position: absolute; right: 0; top: 36px; z-index: 10;
+  position: absolute; right: 0; top: 50%; transform:translateY(-50%); z-index: 10;
   background: white; border: 1.5px solid #c0ddf5; border-radius: 99px;
   padding: 6px 16px; font-size: 0.78rem; color: var(--blue-dark);
   cursor: pointer; font-weight: 700; font-family: 'Noto Sans KR', sans-serif;
   transition: all 0.2s;
 }
 .share-btn {
-  position: absolute; left: 0; top: 36px; z-index: 10;
+  position: absolute; left: 0; top: 50%; transform:translateY(-50%); z-index: 10;
   background: linear-gradient(135deg, #4a9eff, #1a6fd4);
   border: none; border-radius: 99px;
   padding: 6px 16px; font-size: 0.78rem; color: white;
   cursor: pointer; font-weight: 700; font-family: 'Noto Sans KR', sans-serif;
   transition: all 0.2s;
 }
-.share-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(74,158,255,0.4); }
+.share-btn:hover { box-shadow: 0 4px 12px rgba(74,158,255,0.4); }
 
 /* STATUS BAR */
 .status-bar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
@@ -789,7 +789,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
 
   <header>
     <div class="logo">CREATURE WORLD</div>
-    <button class="help-btn" onclick="showModal('helpModal')">게임 설명 ?</button>
+    <button class="help-btn" onclick="showModal('helpModal')">게임 설명</button>
     <button class="share-btn" onclick="shareLink()">친구 초대</button>
   </header>
 
@@ -1084,12 +1084,12 @@ header { text-align: center; padding: 32px 0 20px; position: relative; }
 <div class="modal-overlay" id="helpModal" onclick="closeModalOut(event,'helpModal')">
   <div class="modal">
     <div class="modal-title">게임 설명</div>
-    <div class="help-item"><div class="help-icon">📅</div><div><div class="help-text-title">매일 뽑기권</div><div class="help-text-desc">매일 처음 접속하면 뽑기권 10장을 드려요!</div></div></div>
-    <div class="help-item"><div class="help-icon">⏰</div><div><div class="help-text-title">1시간 접속 보너스</div><div class="help-text-desc">오늘 1시간 이상 접속하면 추가로 1장을 드려요.</div></div></div>
-    <div class="help-item"><div class="help-icon">🐾</div><div><div class="help-text-title">클릭 뽑기</div><div class="help-text-desc">하루에 1번, 500번 클릭하면 뽑기권 1장을 드려요!</div></div></div>
-    <div class="help-item"><div class="help-icon">🎴</div><div><div class="help-text-title">카드 수집</div><div class="help-text-desc">카드를 수집북에 모아보세요. 카드를 클릭하면 크게 볼 수 있어요!</div></div></div>
-    <div class="help-item"><div class="help-icon">🔄</div><div><div class="help-text-title">카드 교환</div><div class="help-text-desc">같은 카드가 10장 이상이면 뽑기권 1장으로 교환할 수 있어요!</div></div></div>
-    <div class="help-item"><div class="help-icon">💾</div><div><div class="help-text-title">자동 저장</div><div class="help-text-desc">수집한 카드는 이 기기에 자동으로 저장돼요.</div></div></div>
+    <div class="help-item"><div class="help-icon"></div><div><div class="help-text-title">매일 뽑기권</div><div class="help-text-desc">매일 처음 접속하면 뽑기권 10장을 드려요!</div></div></div>
+    <div class="help-item"><div class="help-icon"></div><div><div class="help-text-title">1시간 접속 보너스</div><div class="help-text-desc">오늘 1시간 이상 접속하면 추가로 1장을 드려요.</div></div></div>
+    <div class="help-item"><div class="help-icon"></div><div><div class="help-text-title">클릭 뽑기</div><div class="help-text-desc">하루에 1번, 500번 클릭하면 뽑기권 1장을 드려요!</div></div></div>
+    <div class="help-item"><div class="help-icon"></div><div><div class="help-text-title">카드 수집</div><div class="help-text-desc">카드를 수집북에 모아보세요. 카드를 클릭하면 크게 볼 수 있어요!</div></div></div>
+    <div class="help-item"><div class="help-icon"></div><div><div class="help-text-title">카드 교환</div><div class="help-text-desc">같은 카드가 10장 이상이면 뽑기권 1장으로 교환할 수 있어요!</div></div></div>
+    <div class="help-item"><div class="help-icon"></div><div><div class="help-text-title">자동 저장</div><div class="help-text-desc">수집한 카드는 이 기기에 자동으로 저장돼요.</div></div></div>
     <button class="modal-close" onclick="closeModal('helpModal')">시작하기</button>
   </div>
 </div>
@@ -1642,6 +1642,8 @@ function shareLink(){
     prompt('아래 링크를 복사해서 친구에게 보내주세요!', url);
   });
 }
+// 모달
+function showModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 function closeModalOut(e,id){if(e.target.id===id)closeModal(id);}
 
