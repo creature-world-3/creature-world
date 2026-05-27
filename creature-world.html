@@ -1218,7 +1218,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
     <input class="post-nickname" id="postPassword" type="password" placeholder="삭제용 비밀번호" maxlength="20">
     <textarea class="post-text" id="postText" placeholder="한마디 남기기! (최대 50자)" maxlength="50"></textarea>
     <div style="display:flex;gap:8px;margin-top:12px;">
-      <button class="zoom-close" style="flex:1" onclick="closePostModal()">취소</button>
+      <button class="zoom-close" style="flex:1" onclick="closePostModal()">닫기</button>
       <button class="comm-submit-btn" onclick="submitPost()">올리기</button>
     </div>
   </div>
@@ -1226,11 +1226,11 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 
 <!-- 글 상세 모달 -->
 <div class="card-zoom-overlay" id="postDetailModal" onclick="closePostDetail(event)">
-  <div class="post-modal-wrap" onclick="event.stopPropagation()" style="max-width:320px;">
-    <div id="postDetailCard" style="margin-bottom:12px;position:relative;"></div>
-    <div id="postDetailGrade" style="margin-bottom:6px;"></div>
+  <div class="post-modal-wrap" onclick="event.stopPropagation()" style="max-width:320px;max-height:85vh;overflow-y:auto;">
+    <div id="postDetailCard" style="margin-bottom:12px;position:relative;width:120px;margin-left:auto;margin-right:auto;"></div>
+    <div id="postDetailGrade" style="margin-bottom:6px;text-align:center;"></div>
     <div id="postDetailNickname" style="font-weight:900;font-size:1rem;margin-bottom:8px;"></div>
-    <div id="postDetailText" style="font-size:0.88rem;color:#444;line-height:1.6;margin-bottom:10px;"></div>
+    <div id="postDetailText" style="font-size:0.88rem;color:#444;line-height:1.6;margin-bottom:10px;word-break:break-all;"></div>
     <div id="postDetailTime" style="font-size:0.72rem;color:var(--muted);"></div>
     <div style="display:flex;gap:8px;margin-top:16px;">
       <button class="zoom-close" style="flex:1" onclick="closePostDetail()">닫기</button>
