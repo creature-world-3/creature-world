@@ -867,6 +867,12 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
         </div>
         <div class="prog-track"><div class="prog-fill" id="clickProg" style="width:0%"></div></div>
       </div>
+
+      <div class="click-section" style="margin-top:0;">
+        <div class="click-label">랜덤 뽑기권 (하루 1회)</div>
+        <button class="draw-btn primary" id="randomBtn" onclick="getRandomTickets()" style="font-size:0.82rem;">오늘의 랜덤 뽑기권 받기</button>
+        <div style="font-size:0.68rem;color:var(--muted);margin-top:6px;text-align:center;" id="randomDoneText"></div>
+      </div>
     </div>
 
     <div class="collection-section">
@@ -985,9 +991,9 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
         <div class="shop-item-name">프리미엄 뽑기</div>
         <div class="shop-item-desc">SR 이상 확정! 일반 뽑기보다 훨씬 높은 확률!</div>
         <div class="shop-item-rates">
-          <span class="shop-rate sr">SR 75%</span>
-          <span class="shop-rate ur">UR 20%</span>
-          <span class="shop-rate lg">LG 5%</span>
+          <span class="shop-rate sr">SR 60%</span>
+          <span class="shop-rate ur">UR 25%</span>
+          <span class="shop-rate lg">LG 15%</span>
         </div>
         <div class="shop-item-price">뽑기권 10장</div>
         <button class="shop-buy-btn" onclick="buyPremium()">구매하기</button>
@@ -1133,7 +1139,7 @@ function loadState() {
   const today = new Date().toDateString();
   const saved = localStorage.getItem('cw_state');
   state = saved ? JSON.parse(saved) : {};
-  state = Object.assign({ tickets:0, collection:{}, lastLogin:null, sessionBonus:false, clickCount:0, clickDone:false, clickDate:null, sessionMinutes:0, sessionDate:null }, state);
+  state = Object.assign({ tickets:0, collection:{}, lastLogin:null, sessionBonus:false, clickCount:0, clickDone:false, clickDate:null, sessionMinutes:0, sessionDate:null, randomDate:null }, state);
   if (state.clickDate !== today) { state.clickCount=0; state.clickDone=false; state.clickDate=today; }
   if (state.sessionDate !== today) { state.sessionMinutes=0; state.sessionBonus=false; state.sessionDate=today; }
   if (state.lastLogin !== today) {
@@ -1323,7 +1329,13 @@ function updateUI(){
   document.getElementById('clickDoneText').style.display=state.clickDone?'':'none';
   document.getElementById('clickText').style.display=state.clickDone?'none':'';
   document.getElementById('clickBtn').disabled=state.clickDone;
-  const db=document.getElementById('drawBtn');
+  const today = new Date().toDateString();
+  const randomDone = state.randomDate === today;
+  const randomBtn = document.getElementById('randomBtn');
+  if(randomBtn) {
+    randomBtn.disabled = randomDone;
+    document.getElementById('randomDoneText').textContent = randomDone ? '오늘 이미 받았어요 ✓' : '';
+  }
   db.textContent=state.tickets>0?`뽑기권 사용 (${state.tickets}장 보유)`:'뽑기권이 없어요 😢';
   db.disabled=state.tickets<=0;
 }
@@ -1634,10 +1646,23 @@ function closeShopResult() {
   shopResultCard = null;
 }
 
+function getRandomTickets() {
+  const today = new Date().toDateString();
+  if(state.randomDate === today) { showToast('오늘 이미 받았어요! 내일 다시 와요 😊'); return; }
+  const amount = Math.floor(Math.random() * 10) + 1;
+  state.tickets += amount;
+  state.randomDate = today;
+  saveState();
+  updateUI();
+  showToast('오늘의 랜덤 뽑기권 ' + amount + '장 획득!');
+  document.getElementById('randomBtn').disabled = true;
+  document.getElementById('randomDoneText').textContent = '오늘 ' + amount + '장 받았어요 ✓';
+}
+
 function shareLink(){
   const url = 'https://creature-world-3.github.io/creature-world/creature-world.html';
   navigator.clipboard.writeText(url).then(()=>{
-    showToast('🔗 링크가 복사됐어요! 친구에게 공유해보세요 🐧🦊🐹');
+    showToast('링크가 복사됐어요! 친구에게 공유해보세요');
   }).catch(()=>{
     prompt('아래 링크를 복사해서 친구에게 보내주세요!', url);
   });
