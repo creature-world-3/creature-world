@@ -411,12 +411,12 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 }
 .comm-post:hover { transform:translateY(-3px); box-shadow:0 6px 18px rgba(74,158,255,0.13); }
 .comm-post-card {
-  width:100%; aspect-ratio:2/3; border-radius:8px;
+  width:100%; height:120px; border-radius:8px;
   overflow:hidden; border:1.5px solid #d0eaf8;
 }
 .comm-post-card img { width:100%; height:100%; object-fit:cover; object-position:center 20%; }
 .comm-post-card-empty {
-  width:100%; aspect-ratio:2/3; border-radius:8px;
+  width:100%; height:120px; border-radius:8px;
   background:#f0f8ff; border:1.5px solid #d0eaf8;
   display:flex; align-items:center; justify-content:center;
   font-size:1.2rem; color:#b0c8d8;
@@ -2092,26 +2092,32 @@ window.openPostDetail = function(d, docId, timeStr) {
     document.getElementById('postDetailCard').innerHTML = `
       <div class="post-detail-card-wrap" id="postDetailCardWrap">
         <img src="${d.cardImg}">
-        ${hasHolo ? `<div class="post-detail-holo" id="postDetailHolo" style="background:${auroraStyles[d.cardGrade]};${d.cardGrade==='lg'?'opacity:0.6;animation:legendSpin 4s linear infinite;':''}"></div>` : ''}
+        ${hasHolo ? `<div class="post-detail-holo" id="postDetailHolo" style="background:${auroraStyles[d.cardGrade]};background-size:200% 200%;${d.cardGrade==='lg'?'opacity:0.6;animation:colAuroraLG 2s linear infinite;':''}"></div>` : ''}
       </div>`;
 
-    if(hasHolo) {
+    setTimeout(() => {
       const wrap = document.getElementById('postDetailCardWrap');
-      const holo = document.getElementById('postDetailHolo');
-      wrap.onmousemove = (e) => {
-        const r = wrap.getBoundingClientRect();
-        const x = (e.clientX - r.left) / r.width;
-        const y = (e.clientY - r.top) / r.height;
-        const rotY = (x - 0.5) * 25;
-        const rotX = (0.5 - y) * 25;
-        wrap.style.transform = `perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.05)`;
-        holo.style.opacity = '1';
-      };
-      wrap.onmouseleave = () => {
-        wrap.style.transform = '';
-        if(d.cardGrade !== 'lg') holo.style.opacity = '0';
-      };
-    }
+      if(!wrap) return;
+      if(hasHolo) {
+        const holo = document.getElementById('postDetailHolo');
+        wrap.onmousemove = (e) => {
+          const r = wrap.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width;
+          const y = (e.clientY - r.top) / r.height;
+          const rotY = (x - 0.5) * 25;
+          const rotX = (0.5 - y) * 25;
+          wrap.style.transform = `perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.08)`;
+          if(holo) holo.style.opacity = '1';
+        };
+        wrap.onmouseleave = () => {
+          wrap.style.transform = '';
+          if(holo && d.cardGrade !== 'lg') holo.style.opacity = '0';
+        };
+      } else {
+        wrap.onmousemove = () => { wrap.style.transform = 'scale(1.08)'; };
+        wrap.onmouseleave = () => { wrap.style.transform = ''; };
+      }
+    }, 50);
   } else {
     document.getElementById('postDetailCard').innerHTML = '';
   }
