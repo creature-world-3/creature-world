@@ -1227,7 +1227,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 <!-- 글 상세 모달 -->
 <div class="card-zoom-overlay" id="postDetailModal" onclick="closePostDetail(event)">
   <div class="post-modal-wrap" onclick="event.stopPropagation()" style="max-width:320px;">
-    <div id="postDetailCard" style="margin-bottom:12px;"></div>
+    <div id="postDetailCard" style="margin-bottom:12px;position:relative;"></div>
     <div id="postDetailGrade" style="margin-bottom:6px;"></div>
     <div id="postDetailNickname" style="font-weight:900;font-size:1rem;margin-bottom:8px;"></div>
     <div id="postDetailText" style="font-size:0.88rem;color:#444;line-height:1.6;margin-bottom:10px;"></div>
@@ -2053,8 +2053,20 @@ window.openPostDetail = function(d, docId, timeStr) {
   const modal = document.getElementById('postDetailModal');
   modal.dataset.docId = docId;
   modal.dataset.password = d.password || '';
-  document.getElementById('postDetailCard').innerHTML = d.cardImg
-    ? `<div style="width:100%;aspect-ratio:2/3;border-radius:12px;overflow:hidden;border:1.5px solid #d0eaf8;"><img src="${d.cardImg}" style="width:100%;height:100%;object-fit:cover;object-position:center 30%"></div>` : '';
+
+  const auroraStyles = {
+    sr: 'repeating-linear-gradient(120deg,rgba(192,132,252,0.25) 0%,rgba(100,180,255,0.2) 25%,rgba(255,100,200,0.2) 50%,rgba(192,132,252,0.25) 75%)',
+    ur: 'repeating-linear-gradient(120deg,rgba(255,210,80,0.35) 0%,rgba(255,160,30,0.25) 25%,rgba(255,240,120,0.3) 50%,rgba(255,210,80,0.35) 75%)',
+    lg: 'repeating-linear-gradient(120deg,rgba(255,80,80,0.22) 0%,rgba(255,200,50,0.22) 15%,rgba(80,220,120,0.22) 30%,rgba(80,160,255,0.22) 45%,rgba(180,80,255,0.22) 60%,rgba(255,80,80,0.22) 75%)'
+  };
+  const hasAurora = d.cardGrade && ['sr','ur','lg'].includes(d.cardGrade);
+
+  document.getElementById('postDetailCard').innerHTML = d.cardImg ? `
+    <div style="width:100%;aspect-ratio:2/3;border-radius:12px;overflow:hidden;border:1.5px solid #d0eaf8;position:relative;">
+      <img src="${d.cardImg}" style="width:100%;height:100%;object-fit:cover;object-position:center 30%">
+      ${hasAurora ? `<div style="position:absolute;inset:0;background:${auroraStyles[d.cardGrade]};background-size:200% 200%;animation:colAuroraSR 3s ease-in-out infinite;mix-blend-mode:screen;"></div>` : ''}
+    </div>` : '';
+
   document.getElementById('postDetailGrade').innerHTML = d.cardGrade
     ? `<span class="comm-post-grade" style="background:${gradeColors[d.cardGrade]};color:${gradeTextColors[d.cardGrade]}">${window.GRADE_LABEL[d.cardGrade]}</span>` : '';
   document.getElementById('postDetailNickname').textContent = d.nickname || '익명';
