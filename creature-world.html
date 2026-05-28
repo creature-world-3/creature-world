@@ -36,11 +36,14 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
 .help-btn {
-  position: absolute; right: 0; top: 50%; transform:translateY(-50%); z-index: 10;
   background: white; border: 1.5px solid #c0ddf5; border-radius: 99px;
   padding: 6px 16px; font-size: 0.78rem; color: var(--blue-dark);
   cursor: pointer; font-weight: 700; font-family: 'Noto Sans KR', sans-serif;
   transition: all 0.2s;
+}
+.header-right {
+  position: absolute; right: 0; top: 50%; transform:translateY(-50%); z-index: 10;
+  display:flex; gap:6px; align-items:center;
 }
 .share-btn {
   position: absolute; left: 0; top: 50%; transform:translateY(-50%); z-index: 10;
@@ -431,6 +434,21 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 .comm-post-time { font-size:0.58rem; color:var(--muted); margin-top:2px; }
 .comm-empty { text-align:center; color:var(--muted); padding:40px; font-size:0.85rem; grid-column:1/-1; }
 
+/* 공지 */
+.notice-wrap { display:flex; flex-direction:column; gap:14px; padding:4px 0; }
+.notice-item {
+  background:white; border-radius:16px; padding:18px 20px;
+  border:1.5px solid #d0eaf8; box-shadow:0 2px 8px rgba(74,158,255,0.06);
+}
+.notice-version {
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:1rem;
+  color:var(--blue-dark); margin-bottom:2px;
+}
+.notice-date { font-size:0.7rem; color:var(--muted); margin-bottom:10px; }
+.notice-list { display:flex; flex-direction:column; gap:5px; }
+.notice-row { font-size:0.82rem; color:#444; line-height:1.5; }
+.notice-row::before { content:'· '; color:var(--blue); font-weight:700; }
+
 /* 자랑 작성 모달 */
 .post-modal-wrap {
   background:white; border-radius:24px; padding:24px;
@@ -738,8 +756,9 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 .card-zoom-overlay.show { opacity:1; pointer-events:all; }
 
 .zoom-wrap {
-  display:flex; flex-direction:column; align-items:center; gap:16px;
+  display:flex; flex-direction:column; align-items:center; gap:12px;
   transform:scale(0.85); transition:transform 0.35s cubic-bezier(.17,.67,.48,1.3);
+  max-height:95vh; overflow-y:auto; padding:8px 0;
 }
 .card-zoom-overlay.show .zoom-wrap { transform:scale(1); }
 
@@ -905,7 +924,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 }
 .shop-buy-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(74,158,255,0.45); }
 .shop-result-wrap {
-  width:240px; height:360px; perspective:1000px; cursor:pointer;
+  width: min(240px, 65vw); height: min(360px, 97.5vw); perspective:1000px; cursor:pointer;
 }
 .shop-result-inner {
   width:100%; height:100%; position:relative;
@@ -940,7 +959,10 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 
   <header>
     <div class="logo">CREATURE WORLD</div>
-    <button class="help-btn" onclick="showModal('helpModal')">게임 설명</button>
+    <div class="header-right">
+      <button class="help-btn" onclick="showModal('noticeModal')">공지</button>
+      <button class="help-btn" onclick="showModal('helpModal')">게임 설명</button>
+    </div>
     <button class="share-btn" onclick="shareLink()">친구 초대</button>
   </header>
 
@@ -1022,9 +1044,10 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
       </div>
 
       <div class="click-section" style="margin-top:0;">
-        <div class="click-label">랜덤 뽑기권 (하루 1회)</div>
-        <button class="draw-btn primary" id="randomBtn" onclick="getRandomTickets()" style="font-size:0.82rem;">오늘의 랜덤 뽑기권 받기</button>
-        <div style="font-size:0.68rem;color:var(--muted);margin-top:6px;text-align:center;" id="randomDoneText"></div>
+        <div class="click-label">출석체크 (하루 1회)</div>
+        <button class="draw-btn primary" id="attendBtn" onclick="doAttendance()" style="font-size:0.82rem;">✅ 출석체크 하기</button>
+        <div style="font-size:0.68rem;color:var(--muted);margin-top:6px;text-align:center;" id="attendDoneText"></div>
+        <div style="font-size:0.68rem;color:var(--muted);margin-top:2px;text-align:center;" id="attendStreakText"></div>
       </div>
     </div>
 
@@ -1214,6 +1237,15 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 <!-- 도감 탭 -->
 <div class="synth-section" id="dexSection">
   <div class="dex-wrap" id="dexWrap"></div>
+</div>
+
+<!-- 공지 모달 -->
+<div class="modal-overlay" id="noticeModal" onclick="closeModalOut(event,'noticeModal')">
+  <div class="modal" style="max-height:75vh;overflow-y:auto;">
+    <div class="modal-title">공지사항</div>
+    <div class="notice-wrap" id="noticeWrap"></div>
+    <button onclick="closeModal('noticeModal')" style="width:100%;margin-top:16px;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#4a9eff,#1a6fd4);color:white;font-family:'Noto Sans KR',sans-serif;font-weight:700;cursor:pointer;font-size:0.9rem;">확인</button>
+  </div>
 </div>
 
 <!-- 자랑 탭 -->
@@ -1592,11 +1624,13 @@ function updateUI(){
   document.getElementById('clickText').style.display=state.clickDone?'none':'';
   document.getElementById('clickBtn').disabled=state.clickDone;
   const today = new Date().toDateString();
-  const randomDone = state.randomDate === today;
-  const randomBtn = document.getElementById('randomBtn');
-  if(randomBtn) {
-    randomBtn.disabled = randomDone;
-    document.getElementById('randomDoneText').textContent = randomDone ? '오늘 이미 받았어요 ✓' : '';
+  const attendDone = state.attendDate === today;
+  const attendBtn = document.getElementById('attendBtn');
+  if(attendBtn) {
+    attendBtn.disabled = attendDone;
+    const streak = state.attendStreak || 0;
+    document.getElementById('attendDoneText').textContent = attendDone ? `오늘 출석 완료 ✓` : '';
+    document.getElementById('attendStreakText').textContent = streak > 0 ? `🔥 ${streak}일 연속 출석 중 (7일 개근 시 +100장)` : '7일 개근하면 보너스 100장!';
   }
   const db=document.getElementById('drawBtn');
   db.textContent=state.tickets>0?`뽑기권 사용 (${state.tickets}장 보유)`:'뽑기권이 없어요';
@@ -1935,17 +1969,68 @@ function closeShopResult() {
   shopResultCard = null;
 }
 
-function getRandomTickets() {
+function doAttendance() {
   const today = new Date().toDateString();
-  if(state.randomDate === today) { showToast('오늘 이미 받았어요! 내일 다시 와요 😊'); return; }
+  if(state.attendDate === today) { showToast('오늘 이미 출석했어요! 내일 다시 와요 😊'); return; }
+
+  // 연속 출석 계산
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const wasYesterday = state.attendDate === yesterday.toDateString();
+  state.attendStreak = wasYesterday ? (state.attendStreak || 0) + 1 : 1;
+  state.attendDate = today;
+
   const amount = Math.floor(Math.random() * 11) + 5;
   state.tickets += amount;
-  state.randomDate = today;
+
+  // 7일 개근 보너스
+  let bonusMsg = '';
+  if(state.attendStreak % 7 === 0) {
+    state.tickets += 100;
+    bonusMsg = ' 🎉 7일 개근 보너스 +100장!';
+  }
+
   saveState();
   updateUI();
-  showToast('오늘의 랜덤 뽑기권 ' + amount + '장 획득!');
-  document.getElementById('randomBtn').disabled = true;
-  document.getElementById('randomDoneText').textContent = '오늘 ' + amount + '장 받았어요 ✓';
+  showToast('출석체크 완료! 뽑기권 ' + amount + '장 획득!' + bonusMsg);
+}
+
+// 공지 데이터
+const NOTICES = [
+  {
+    version: 'v1.1',
+    date: '2025.05.28',
+    items: [
+      '출석체크 기능 추가 (하루 1회, 7일 개근 시 보너스 100장)',
+      '공지 탭 추가',
+      '게시판 카드 반짝이 효과 추가',
+      '프리미엄 뽑기 모바일 사이즈 수정',
+    ]
+  },
+  {
+    version: 'v1.0',
+    date: '2025.05.27',
+    items: [
+      '크리쳐 월드 오픈!',
+      '미스티(고스트) 캐릭터 추가',
+      '도감 기능 추가',
+      '자유 게시판 추가',
+      '뽑기 확률 조정 (SR 6.9% / UR 1% / LG 0.1%)',
+    ]
+  }
+];
+
+function renderNotice() {
+  const wrap = document.getElementById('noticeWrap');
+  wrap.innerHTML = NOTICES.map(n => `
+    <div class="notice-item">
+      <div class="notice-version">${n.version}</div>
+      <div class="notice-date">${n.date}</div>
+      <div class="notice-list">
+        ${n.items.map(i => `<div class="notice-row">${i}</div>`).join('')}
+      </div>
+    </div>
+  `).join('');
 }
 
 function shareLink(){
@@ -1957,7 +2042,10 @@ function shareLink(){
   });
 }
 // 모달
-function showModal(id){document.getElementById(id).classList.add('show');}
+function showModal(id){
+  document.getElementById(id).classList.add('show');
+  if(id === 'noticeModal') renderNotice();
+}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 function closeModalOut(e,id){if(e.target.id===id)closeModal(id);}
 
