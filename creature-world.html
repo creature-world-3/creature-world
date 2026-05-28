@@ -445,6 +445,54 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 .comm-post-time { font-size:0.58rem; color:var(--muted); margin-top:2px; }
 .comm-empty { text-align:center; color:var(--muted); padding:40px; font-size:0.85rem; grid-column:1/-1; }
 
+/* 10뽑 */
+@keyframes cardBurst {
+  0%   { transform: translate(var(--bx), var(--by)) scale(0.2) rotate(var(--br)); opacity:0; }
+  60%  { transform: translate(calc(var(--bx)*0.05), calc(var(--by)*0.05)) scale(1.08) rotate(calc(var(--br)*0.1)); opacity:1; }
+  80%  { transform: translate(0,0) scale(0.96) rotate(0deg); }
+  100% { transform: translate(0,0) scale(1) rotate(0deg); opacity:1; }
+}
+.draw10-wrap {
+  display:flex; flex-direction:column; align-items:center; gap:16px;
+  max-width:92vw; max-height:90vh; overflow-y:auto; padding:8px;
+}
+.draw10-title {
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:1.3rem;
+  color:white; text-shadow:0 2px 8px rgba(0,0,0,0.5);
+}
+.draw10-grid {
+  display:grid; grid-template-columns:repeat(5,1fr); gap:8px; width:100%;
+}
+@media(max-width:600px) {
+  .draw10-grid { grid-template-columns:repeat(2,1fr); gap:10px; }
+  .draw10-title { font-size:1.1rem; }
+}
+.draw10-card {
+  aspect-ratio:2/3; border-radius:12px; overflow:hidden; position:relative;
+  cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.3);
+  opacity:0;
+  transition:transform 0.18s ease, box-shadow 0.18s ease;
+}
+.draw10-card.burst-done {
+  transition:transform 0.18s ease, box-shadow 0.18s ease;
+}
+.draw10-card:hover { transform:scale(1.1) translateY(-4px) !important; box-shadow:0 14px 36px rgba(0,0,0,0.55); z-index:10; }
+.draw10-card img { width:100%; height:100%; object-fit:cover; object-position:center top; }
+.draw10-card .d10-header {
+  position:absolute; top:0; left:0; right:0; padding:5px 7px;
+  background:linear-gradient(to bottom,rgba(0,0,0,0.7),transparent);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.draw10-card .d10-name { font-family:'Nunito',sans-serif; font-weight:900; font-size:10px; color:white; text-shadow:0 1px 4px rgba(0,0,0,0.8); }
+.draw10-card .d10-grade { font-size:8px; font-weight:900; padding:2px 5px; border-radius:99px; }
+.draw10-card .d10-aurora { position:absolute; inset:0; pointer-events:none; mix-blend-mode:screen; border-radius:12px; }
+.draw10-card .d10-cond {
+  position:absolute; bottom:4px; right:4px; width:20px; height:20px; border-radius:50%;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:10px;
+  display:flex; align-items:center; justify-content:center;
+  border:1.5px solid rgba(255,255,255,0.5);
+}
+
 /* 공지 */
 .notice-wrap { display:flex; flex-direction:column; gap:14px; padding:4px 0; }
 .notice-item {
@@ -1043,6 +1091,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
       <div class="draw-actions">
         <button class="draw-btn primary" id="drawBtn" onclick="drawCard()">뽑기권 사용 (1장)</button>
         <button class="draw-btn secondary" id="nextDrawBtn" style="display:none" onclick="resetDraw()">다음 뽑기 →</button>
+        <button class="draw-btn primary" id="draw10Btn" onclick="draw10Cards()" style="background:linear-gradient(135deg,#7c3aed,#4d96ff);margin-top:6px;font-size:0.82rem;">✨ 10뽑 (10장)</button>
       </div>
 
       <div class="click-section">
@@ -1170,6 +1219,20 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
       <div class="col-count">보유 뽑기권 <span id="shopTicketCount">0</span>장</div>
     </div>
 
+    <!-- 테스트 이벤트 -->
+    <div class="shop-item" style="border:1.5px solid #fbbf24;background:linear-gradient(135deg,rgba(255,215,0,0.05),rgba(255,170,0,0.08));">
+      <div class="shop-item-left">
+        <div class="shop-card-preview" style="background:linear-gradient(145deg,#f59e0b,#fbbf24,#fde68a);display:flex;align-items:center;justify-content:center;font-size:2rem;">🎁</div>
+      </div>
+      <div class="shop-item-right">
+        <div class="shop-item-name" style="color:#d97706;">🧪 테스트 이벤트</div>
+        <div class="shop-item-desc">테스트 서버 한정! 뽑기권 100장을 드려요. 하루 1회.</div>
+        <div class="shop-item-price" style="color:#d97706;">무료 (하루 1회)</div>
+        <button class="shop-buy-btn" id="testEventBtn" onclick="getTestEvent()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">받기</button>
+        <div style="font-size:0.68rem;color:var(--muted);margin-top:4px;" id="testEventText"></div>
+      </div>
+    </div>
+
     <!-- 프리미엄 뽑기 카드 -->
     <div class="shop-item">
       <div class="shop-item-left">
@@ -1251,6 +1314,15 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   <div class="dex-wrap" id="dexWrap"></div>
 </div>
 
+<!-- 10뽑 결과 오버레이 -->
+<div class="card-zoom-overlay" id="draw10Overlay" onclick="closeDraw10(event)">
+  <div class="draw10-wrap">
+    <div class="draw10-title">✨ 10뽑 결과!</div>
+    <div class="draw10-grid" id="draw10Grid"></div>
+    <button class="zoom-close" onclick="closeDraw10()">닫기</button>
+  </div>
+</div>
+
 <!-- 공지 모달 -->
 <div class="modal-overlay" id="noticeModal" onclick="closeModalOut(event,'noticeModal')">
   <div class="modal" style="max-height:75vh;overflow-y:auto;">
@@ -1307,7 +1379,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 </div>
 
 <!-- 카드 확대 모달 -->
-<div class="card-zoom-overlay" id="zoomOverlay" onclick="closeZoom(event)">
+<div class="card-zoom-overlay" id="zoomOverlay" onclick="closeZoom(event)" style="z-index:250;">
   <div class="zoom-wrap">
     <div class="zoom-card-wrap">
       <div class="zoom-card grade-n" id="zoomCard">
@@ -1435,7 +1507,7 @@ function loadState() {
   const today = new Date().toDateString();
   const saved = localStorage.getItem('cw_state');
   state = saved ? JSON.parse(saved) : {};
-  state = Object.assign({ tickets:0, collection:{}, ownedCards:[], lastLogin:null, sessionBonus:false, clickCount:0, clickRound:0, clickDone:false, clickDate:null, sessionMinutes:0, sessionDate:null, randomDate:null, attendDate:null, attendStreak:0 }, state);
+  state = Object.assign({ tickets:0, collection:{}, ownedCards:[], lastLogin:null, sessionBonus:false, clickCount:0, clickRound:0, clickDone:false, clickDate:null, sessionMinutes:0, sessionDate:null, randomDate:null, attendDate:null, attendStreak:0, testEventDate:null }, state);
 
   // 기존 collection → ownedCards 마이그레이션
   if(Object.keys(state.collection).length > 0 && state.ownedCards.length === 0) {
@@ -1688,6 +1760,12 @@ function updateUI(){
     document.getElementById('attendDoneText').textContent = attendDone ? `오늘 출석 완료 ✓` : '';
     document.getElementById('attendStreakText').textContent = streak > 0 ? `🔥 ${streak}일 연속 출석 중 (7일 개근 시 +100장)` : '7일 개근하면 보너스 100장!';
   }
+  const testEventDone = state.testEventDate === today;
+  const testEventBtn = document.getElementById('testEventBtn');
+  if(testEventBtn) {
+    testEventBtn.disabled = testEventDone;
+    document.getElementById('testEventText').textContent = testEventDone ? '오늘 받았어요 ✓' : '';
+  }
   const db=document.getElementById('drawBtn');
   db.textContent=state.tickets>0?`뽑기권 사용 (${state.tickets}장 보유)`:'뽑기권이 없어요';
   db.disabled=state.tickets<=0;
@@ -1875,8 +1953,14 @@ function exchangeCard(){
   document.getElementById('exchangeBtn').style.display = remaining >= 10 ? '' : 'none';
   updateUI(); renderGrid();
 }
-function closeZoom(e){ if(e.target.id==='zoomOverlay') document.getElementById('zoomOverlay').classList.remove('show'); }
-function closeZoomBtn(){ document.getElementById('zoomOverlay').classList.remove('show'); }
+function closeZoom(e){
+  if(e.target.id==='zoomOverlay') {
+    document.getElementById('zoomOverlay').classList.remove('show');
+  }
+}
+function closeZoomBtn(){
+  document.getElementById('zoomOverlay').classList.remove('show');
+}
 
 // 모달
 // 탭 전환
@@ -2151,6 +2235,100 @@ function closeShopResult() {
   shopResultCard = null;
 }
 
+function draw10Cards() {
+  if(state.tickets < 10) { showToast('뽑기권이 부족해요! 10장이 필요해요 😢'); return; }
+  state.tickets -= 10;
+  const results = [];
+  for(let i=0; i<10; i++) {
+    const card = randomCard();
+    const cond = randomCondition();
+    state.ownedCards.push({ uid: genUid(), id: card.id, condition: cond });
+    results.push({ card, cond });
+  }
+  saveState(); updateUI(); renderGrid();
+
+  // 결과 그리드 렌더
+  const grid = document.getElementById('draw10Grid');
+  grid.innerHTML = '';
+  const gradeColors = {n:'rgba(80,80,80,0.9)',r:'#1a3a6a',sr:'#2d1b4e',ur:'#3a2800',lg:'linear-gradient(90deg,#ff6b6b,#4d96ff,#c77dff)'};
+  const gradeTextColors = {n:'#ccc',r:'#7eb8ff',sr:'#d4a8ff',ur:'#ffd97a',lg:'#fff'};
+  const auroraMap = {
+    sr:'repeating-linear-gradient(120deg,rgba(192,132,252,0.35) 0%,rgba(100,180,255,0.25) 25%,rgba(255,100,200,0.25) 50%,rgba(192,132,252,0.35) 75%)',
+    ur:'repeating-linear-gradient(120deg,rgba(255,210,80,0.45) 0%,rgba(255,160,30,0.35) 25%,rgba(255,240,120,0.4) 50%,rgba(255,210,80,0.45) 75%)',
+    lg:'repeating-linear-gradient(120deg,rgba(255,80,80,0.3) 0%,rgba(255,200,50,0.3) 15%,rgba(80,220,120,0.3) 30%,rgba(80,160,255,0.3) 45%,rgba(180,80,255,0.3) 60%,rgba(255,80,80,0.3) 75%)'
+  };
+
+  results.forEach(({card, cond}, idx) => {
+    const cs = conditionStyle(cond);
+    const condBg = cs==='gold' ? '' : cs==='holo' ? 'background:linear-gradient(135deg,#c084fc,#4d96ff);' : 'background:#444;';
+    const condColor = cs==='gold' ? '#7a4a00' : 'white';
+    const condClass = cs==='gold' ? 'cond-badge-gold' : '';
+    const hasAurora = ['sr','ur','lg'].includes(card.grade);
+    const lgBorder = card.grade==='lg' ? 'box-shadow:0 0 0 2px #ffd700,0 4px 16px rgba(255,215,0,0.5);' : '';
+
+    // 카드 위치에서 중앙까지 방향 계산 (5열 기준, 모바일 2열)
+    const cols = window.innerWidth <= 600 ? 2 : 5;
+    const col = idx % cols;
+    const row = Math.floor(idx / cols);
+    const totalCols = cols;
+    const cx = col - (totalCols - 1) / 2;
+    const cy = row - 1;
+    const bx = Math.round(-cx * 220);
+    const by = Math.round(-cy * 280);
+    const br = Math.round(cx * 18);
+
+    const div = document.createElement('div');
+    div.className = 'draw10-card grade-' + card.grade;
+    div.style.cssText = lgBorder + `--bx:${bx}px;--by:${by}px;--br:${br}deg;`;
+    div.innerHTML = `
+      <img src="${card.img}" alt="${card.name}">
+      <div class="d10-header">
+        <span class="d10-name">${card.name}</span>
+        <span class="d10-grade" style="background:${gradeColors[card.grade]};color:${gradeTextColors[card.grade]}">${GRADE_LABEL[card.grade]}</span>
+      </div>
+      ${hasAurora ? `<div class="d10-aurora" style="background:${auroraMap[card.grade]};background-size:200% 200%;animation:colAuroraSR ${card.grade==='lg'?'2':'3'}s ease-in-out infinite;${card.grade==='lg'?'opacity:0.7;':''}"></div>` : ''}
+      <div class="d10-cond ${condClass}" style="${condBg}color:${condColor};">${cond}</div>
+    `;
+    div.onclick = () => {
+      const oc = state.ownedCards.filter(c=>c.id===card.id).slice(-1)[0];
+      openZoom(card, state.ownedCards.filter(c=>c.id===card.id).length, oc);
+    };
+    grid.appendChild(div);
+
+    // 순서대로 터져나오는 딜레이
+    const delay = idx * 80;
+    setTimeout(() => {
+      div.style.animation = `cardBurst 0.55s cubic-bezier(.17,.67,.35,1.2) forwards`;
+      div.style.animationDelay = '0ms';
+      setTimeout(() => div.classList.add('burst-done'), 560);
+    }, delay);
+
+    // SR이상 플래시는 해당 카드 터질 때
+    if(card.grade==='lg') setTimeout(()=>gradeFlash('lg'), delay+200);
+    else if(card.grade==='ur') setTimeout(()=>gradeFlash('ur'), delay+200);
+    else if(card.grade==='sr') setTimeout(()=>gradeFlash('sr'), delay+200);
+  });
+
+  document.getElementById('draw10Overlay').classList.add('show');
+}
+
+function closeDraw10(e) {
+  if(!e || e.target.id==='draw10Overlay') {
+    document.getElementById('draw10Overlay').classList.remove('show');
+  }
+}
+
+function getTestEvent() {
+  const today = new Date().toDateString();
+  if(state.testEventDate === today) { showToast('오늘 이미 받았어요! 내일 다시 와요 😊'); return; }
+  state.testEventDate = today;
+  state.tickets += 100;
+  saveState(); updateUI();
+  document.getElementById('testEventBtn').disabled = true;
+  document.getElementById('testEventText').textContent = '오늘 받았어요 ✓';
+  showToast('🎁 테스트 이벤트! 뽑기권 100장 획득!');
+}
+
 function doAttendance() {
   const today = new Date().toDateString();
   if(state.attendDate === today) { showToast('오늘 이미 출석했어요! 내일 다시 와요 😊'); return; }
@@ -2180,11 +2358,22 @@ function doAttendance() {
 // 공지 데이터
 const NOTICES = [
   {
+    version: 'v1.2',
+    date: '2025.05.28',
+    items: [
+      '컨디션 시스템 추가 (1~10점, 골드/홀로/일반 반짝이)',
+      '10뽑 추가 (팡! 터지는 애니메이션)',
+      '테스트 이벤트 추가 (상점에서 하루 1회 +100장)',
+      '게시판 카드 점수 표시',
+      '뽑기 결과 카드에 점수 뱃지 표시',
+    ]
+  },
+  {
     version: 'v1.1',
     date: '2025.05.28',
     items: [
       '출석체크 기능 추가 (하루 1회, 7일 개근 시 보너스 100장)',
-      '공지 탭 추가',
+      '공지 버튼 추가',
       '게시판 카드 반짝이 효과 추가',
       '프리미엄 뽑기 모바일 사이즈 수정',
     ]
