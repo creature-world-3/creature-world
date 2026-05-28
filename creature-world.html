@@ -1125,6 +1125,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
           <button class="col-filter-pill" onclick="setCharFilter('pin',this)">핀초코</button>
           <button class="col-filter-pill" onclick="setCharFilter('luka',this)">루카뇽</button>
           <button class="col-filter-pill" onclick="setCharFilter('misti',this)">미스티</button>
+          <button class="col-filter-pill" onclick="setCharFilter('daitron',this)">다이트론</button>
         </div>
         <div class="col-filter-row" id="gradeFilterRow">
           <button class="col-filter-pill active" onclick="setGradeFilter('all',this)">전체</button>
@@ -1464,6 +1465,11 @@ const CARDS = [
   { id:'misti_sr', name:'미스티', slogan:'"이건?? 나잖아!!"',                   desc:'', grade:'sr', img:'슈퍼레어귀신.png' },
   { id:'misti_ur', name:'미스티', slogan:'"시원하다~ 칠~!"',                    desc:'', grade:'ur', img:'울트라레어귀신.png' },
   { id:'misti_lg', name:'미스티', slogan:'"울면 사탕 안준다??!!"',              desc:'', grade:'lg', img:'레전드귀신.png' },
+  { id:'daitron_n',  name:'다이트론', slogan:'앞이 안보여...', desc:'투구가 너무 커서 앞이 안 보인다. 그래도 씩씩하게 걷는 중.', grade:'n',  img:'노말악마기사.png' },
+  { id:'daitron_r',  name:'다이트론', slogan:'으아악!', desc:'원숭이나 나무에서 떨어지지! 날개가 있는데 왜 이러는 걸까.', grade:'r',  img:'레어악마기사.png' },
+  { id:'daitron_sr', name:'다이트론', slogan:'악마의 성...zzz', desc:'마왕의 도서관에서 그만 잠들어버렸다. 옆엔 꼬마 악마도 같이 자고 있다.', grade:'sr', img:'슈퍼레어악마기사.png' },
+  { id:'daitron_ur', name:'다이트론', slogan:'물..들어와..ㅅ..ㅏ.ㄹ..', desc:'수영은 못 배웠다. 갑옷이 너무 무거웠다. 구명튜브가 눈앞에 있다.', grade:'ur', img:'울트라레어악마기사.png' },
+  { id:'daitron_lg', name:'다이트론', slogan:'끝이다.', desc:'마왕을 앞에 두고 불꽃 검을 뽑아들었다. 이제 진짜 시작이다.', grade:'lg', img:'레전드악마기사.png' },
 ];
 
 const GRADE_LABEL = {n:'N',r:'R',sr:'SR',ur:'UR',lg:'LEGEND'};
@@ -2361,11 +2367,11 @@ const NOTICES = [
     version: 'v1.2',
     date: '2025.05.28',
     items: [
+      '다이트론(악마기사) 캐릭터 추가 (총 30종)',
       '컨디션 시스템 추가 (1~10점, 골드/홀로/일반 반짝이)',
       '10뽑 추가 (팡! 터지는 애니메이션)',
       '테스트 이벤트 추가 (상점에서 하루 1회 +100장)',
       '게시판 카드 점수 표시',
-      '뽑기 결과 카드에 점수 뱃지 표시',
     ]
   },
   {
@@ -2438,6 +2444,7 @@ const DEX_CHARS = [
   { key: 'pin',   label: '핀초코' },
   { key: 'luka',  label: '루카뇽' },
   { key: 'misti', label: '미스티' },
+  { key: 'daitron', label: '다이트론' },
 ];
 const DEX_GRADES = ['n','r','sr','ur','lg'];
 
