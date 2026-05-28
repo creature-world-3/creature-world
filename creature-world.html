@@ -338,6 +338,17 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   0%   { background-position:0% 0%;     --col-angle:0deg; }
   100% { background-position:300% 300%; --col-angle:360deg; }
 }
+@keyframes goldBadgeShimmer {
+  0%   { background:linear-gradient(135deg,#ffd700,#ffaa00,#ffe066,#ffd700); background-size:300% 300%; background-position:0% 0%; box-shadow:0 0 6px 2px rgba(255,215,0,0.5); }
+  50%  { background-position:100% 100%; box-shadow:0 0 12px 4px rgba(255,215,0,0.8); }
+  100% { background-position:0% 0%; box-shadow:0 0 6px 2px rgba(255,215,0,0.5); }
+}
+.cond-badge-gold {
+  animation: goldBadgeShimmer 1.5s ease-in-out infinite !important;
+  background:linear-gradient(135deg,#ffd700,#ffaa00,#ffe066,#ffd700) !important;
+  background-size:300% 300% !important;
+  color:#7a4a00 !important;
+}
 
 /* LEGEND 카드 테두리도 반짝 */
 .col-card.grade-lg {
@@ -1024,6 +1035,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
               <div class="card-desc" id="dDesc"></div>
             </div>
             <div class="card-aurora"></div>
+            <div class="draw-cond-badge" id="drawCondBadge" style="display:none"></div>
           </div>
         </div>
       </div>
@@ -1188,7 +1200,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   <div class="modal-overlay" id="shopConfirmModal" onclick="closeModalOut(event,'shopConfirmModal')">
     <div class="modal">
       <div class="modal-title">프리미엄 뽑기</div>
-      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:20px;line-height:1.6">뽑기권 <strong style="color:var(--blue-dark)">10장</strong>으로 프리미엄 뽑기를 하시겠습니까?<br>80%는 뽑기권 1~20장, 20%는 SR 이상 카드!</p>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:20px;line-height:1.6">뽑기권 <strong style="color:var(--blue-dark)">10장</strong>으로 프리미엄 뽑기를 하시겠습니까?<br>80%는 뽑기권 1~15장, 20%는 SR 이상 카드!</p>
       <div style="display:flex;gap:8px;">
         <button onclick="closeModal('shopConfirmModal')" style="flex:1;padding:12px;border-radius:12px;border:1.5px solid #d0eaf8;background:white;font-family:'Noto Sans KR',sans-serif;font-weight:700;cursor:pointer;">취소</button>
         <button onclick="confirmPremium()" style="flex:2;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#4a9eff,#1a6fd4);color:white;font-family:'Noto Sans KR',sans-serif;font-weight:700;cursor:pointer;">구매!</button>
@@ -1396,11 +1408,46 @@ const GRADE_HOLO = {
 let state = {};
 window.getCARDS = () => CARDS;
 window.getState = () => state;
+let uidCounter = 0;
+function genUid() { return ++uidCounter + '_' + Date.now(); }
+
+function randomCondition() {
+  const r = Math.random();
+  if(r < 0.02) return 10;
+  if(r < 0.07) return 9;
+  if(r < 0.20) return 8;
+  if(r < 0.37) return 7;
+  if(r < 0.53) return 6;
+  if(r < 0.65) return 5;
+  if(r < 0.76) return 4;
+  if(r < 0.86) return 3;
+  if(r < 0.93) return 2;
+  return 1;
+}
+
+function conditionStyle(cond) {
+  if(cond >= 9) return 'gold';
+  if(cond >= 6) return 'holo';
+  return 'normal';
+}
+
 function loadState() {
   const today = new Date().toDateString();
   const saved = localStorage.getItem('cw_state');
   state = saved ? JSON.parse(saved) : {};
-  state = Object.assign({ tickets:0, collection:{}, lastLogin:null, sessionBonus:false, clickCount:0, clickRound:0, clickDone:false, clickDate:null, sessionMinutes:0, sessionDate:null, randomDate:null }, state);
+  state = Object.assign({ tickets:0, collection:{}, ownedCards:[], lastLogin:null, sessionBonus:false, clickCount:0, clickRound:0, clickDone:false, clickDate:null, sessionMinutes:0, sessionDate:null, randomDate:null, attendDate:null, attendStreak:0 }, state);
+
+  // 기존 collection → ownedCards 마이그레이션
+  if(Object.keys(state.collection).length > 0 && state.ownedCards.length === 0) {
+    Object.entries(state.collection).forEach(([id, cnt]) => {
+      for(let i=0; i<cnt; i++) {
+        state.ownedCards.push({ uid: genUid(), id, condition: randomCondition() });
+      }
+    });
+    state.collection = {};
+    saveState();
+  }
+
   if (state.clickDate !== today) { state.clickCount=0; state.clickRound=0; state.clickDone=false; state.clickDate=today; }
   if (state.sessionDate !== today) { state.sessionMinutes=0; state.sessionBonus=false; state.sessionDate=today; }
   if (state.lastLogin !== today) {
@@ -1450,8 +1497,9 @@ function drawCard() {
   if(isFlipped)return;
   state.tickets--;
   const card = randomCard();
-  if(!state.collection[card.id]) state.collection[card.id]=0;
-  state.collection[card.id]++;
+  if(!state.ownedCards) state.ownedCards = [];
+  const cond = randomCondition();
+  state.ownedCards.push({ uid: genUid(), id: card.id, condition: cond });
   saveState();
 
   document.getElementById('drawFront').className='draw-face draw-front grade-'+card.grade;
@@ -1461,13 +1509,18 @@ function drawCard() {
   document.getElementById('dSlogan').textContent=card.slogan;
   document.getElementById('dDesc').textContent=card.desc;
 
+  // 컨디션 뱃지
+  const badge = document.getElementById('drawCondBadge');
+  const cs = conditionStyle(cond);
+  badge.textContent = cond;
+  if(cs==='gold') { badge.className='draw-cond-badge cond-badge-gold'; badge.style.cssText='display:flex;position:absolute;bottom:10px;right:10px;width:28px;height:28px;border-radius:50%;color:#7a4a00;font-family:Nunito,sans-serif;font-weight:900;font-size:13px;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.6);z-index:5;'; }
+  else if(cs==='holo') { badge.className='draw-cond-badge'; badge.style.cssText='display:flex;position:absolute;bottom:10px;right:10px;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#c084fc,#4d96ff);color:white;font-family:Nunito,sans-serif;font-weight:900;font-size:13px;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.6);z-index:5;'; }
+  else { badge.className='draw-cond-badge'; badge.style.cssText='display:flex;position:absolute;bottom:10px;right:10px;width:28px;height:28px;border-radius:50%;background:#444;color:white;font-family:Nunito,sans-serif;font-weight:900;font-size:13px;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.5);z-index:5;'; }
+
   // SR 이상 이펙트
   if(['sr','ur','lg'].includes(card.grade)) {
     gradeFlash(card.grade);
-    setTimeout(()=>{
-      isFlipped=true;
-      document.getElementById('drawCardInner').classList.add('flipped');
-    }, 400);
+    setTimeout(()=>{ isFlipped=true; document.getElementById('drawCardInner').classList.add('flipped'); }, 400);
   } else {
     isFlipped=true;
     document.getElementById('drawCardInner').classList.add('flipped');
@@ -1475,7 +1528,7 @@ function drawCard() {
 
   document.getElementById('drawBtn').style.display='none';
   document.getElementById('nextDrawBtn').style.display='';
-  const isNew=state.collection[card.id]===1;
+  const isNew = state.ownedCards.filter(c => c.id === card.id).length === 1;
   showToast((isNew?'NEW! ':'✨ ')+card.name+' 획득!');
   updateUI(); renderGrid();
 }
@@ -1530,7 +1583,6 @@ function renderGrid(charFilter, gradeFilter){
   currentGrade = gradeFilter;
 
   const grid = document.getElementById('cardGrid');
-  console.log('renderGrid called, grid:', grid, 'cards:', CARDS.length, 'state:', JSON.stringify(state.collection));
   if(!grid) return;
   grid.innerHTML = '';
 
@@ -1538,13 +1590,14 @@ function renderGrid(charFilter, gradeFilter){
   if(charFilter !== 'all') filtered = filtered.filter(c=>c.id.startsWith(charFilter));
   if(gradeFilter !== 'all') filtered = filtered.filter(c=>c.grade===gradeFilter);
 
-  const owned = filtered.filter(c=>(state.collection[c.id]||0)>0);
-  const locked = filtered.filter(c=>!(state.collection[c.id]>0));
+  // ownedCards에서 보유 카드 id 목록
+  const ownedIds = new Set((state.ownedCards||[]).map(c=>c.id));
+  const owned = filtered.filter(c => ownedIds.has(c.id));
+  const locked = filtered.filter(c => !ownedIds.has(c.id));
   const allCards = [...owned, ...locked];
 
   const totalPages = Math.ceil(allCards.length / CARDS_PER_PAGE);
   if(currentPage >= totalPages) currentPage = Math.max(0, totalPages - 1);
-
   const pageCards = allCards.slice(currentPage * CARDS_PER_PAGE, (currentPage + 1) * CARDS_PER_PAGE);
 
   if(allCards.length === 0){
@@ -1554,27 +1607,29 @@ function renderGrid(charFilter, gradeFilter){
   }
 
   pageCards.forEach(card => {
-    const cnt = state.collection[card.id] || 0;
-    const isLocked = cnt === 0;
+    const myCards = (state.ownedCards||[]).filter(c=>c.id===card.id);
+    const isLocked = myCards.length === 0;
     const div = document.createElement('div');
     div.className = 'col-card grade-' + card.grade + (isLocked ? ' locked' : '');
-    if(isLocked) {
-      div.innerHTML = '';
-    } else {
+    if(!isLocked) {
+      // 가장 높은 컨디션 카드를 대표로
+      const best = myCards.reduce((a,b) => b.condition > a.condition ? b : a);
+      const cStyle = conditionStyle(best.condition);
       div.innerHTML = `
         <img src="${card.img}" alt="${card.name}">
+        ${cStyle==='gold' ? '<div class="cond-gold-overlay"></div>' : ''}
+        ${cStyle==='holo' ? '<div class="cond-holo-overlay"></div>' : ''}
         <div class="col-card-footer">
           <div class="col-name">${card.name}</div>
           <span class="col-grade">${GRADE_LABEL[card.grade]}</span>
         </div>
-        ${cnt>1?`<div class="dup">×${cnt}</div>`:''}
+        ${myCards.length>1?`<div class="dup">×${myCards.length}</div>`:''}
       `;
-      div.onclick = () => openZoom(card, cnt);
+      div.onclick = () => openCardList(card);
     }
     grid.appendChild(div);
   });
 
-  // 페이지네이션 업데이트
   const pagination = document.getElementById('pagination');
   if(pagination) {
     pagination.style.display = totalPages <= 1 ? 'none' : 'flex';
@@ -1609,8 +1664,9 @@ setInterval(()=>{
 // UI
 function updateUI(){
   document.getElementById('ticketCount').textContent=state.tickets;
-  const total=Object.values(state.collection).reduce((a,b)=>a+b,0);
-  const unique=Object.keys(state.collection).filter(id=>state.collection[id]>0).length;
+  const ownedIds = new Set((state.ownedCards||[]).map(c=>c.id));
+  const total = (state.ownedCards||[]).length;
+  const unique = ownedIds.size;
   document.getElementById('collectedCount').textContent=unique;
   document.getElementById('collectedSub').textContent='/ '+CARDS.length+' 종류';
   document.getElementById('colCountBadge').textContent=unique+' / '+CARDS.length;
@@ -1639,10 +1695,100 @@ function updateUI(){
 
 // 수집북
 
+// 컨디션 오버레이 CSS
+const condCSS = document.createElement('style');
+condCSS.textContent = `
+.cond-gold-overlay {
+  position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:repeating-linear-gradient(120deg,rgba(255,215,0,0.35) 0%,rgba(255,170,0,0.25) 25%,rgba(255,240,100,0.4) 50%,rgba(255,215,0,0.35) 75%);
+  background-size:200% 200%;animation:colAuroraSR 2s ease-in-out infinite;mix-blend-mode:screen;
+}
+.cond-holo-overlay {
+  position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:repeating-linear-gradient(120deg,rgba(192,132,252,0.25) 0%,rgba(100,180,255,0.2) 25%,rgba(255,100,200,0.2) 50%,rgba(192,132,252,0.25) 75%);
+  background-size:200% 200%;animation:colAuroraSR 3s ease-in-out infinite;mix-blend-mode:screen;
+}
+.card-list-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;
+  display:none;align-items:center;justify-content:center;
+}
+.card-list-overlay.show { display:flex; }
+.card-list-wrap {
+  background:white;border-radius:20px;padding:20px;
+  max-width:420px;width:90%;max-height:80vh;overflow-y:auto;
+}
+.card-list-title { font-weight:900;font-size:1rem;margin-bottom:14px;color:var(--blue-dark); }
+.card-list-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:10px; }
+.card-list-item {
+  border-radius:12px;overflow:hidden;cursor:pointer;position:relative;
+  border:1.5px solid #d0eaf8;aspect-ratio:2/3;
+  transition:transform 0.15s;
+}
+.card-list-item:hover { transform:scale(1.04); }
+.card-list-item img { width:100%;height:100%;object-fit:cover;object-position:center top; }
+.draw-cond-badge {
+  position:absolute; bottom:10px; right:10px;
+  width:28px; height:28px; border-radius:50%;
+  background:rgba(0,0,0,0.65); color:white;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:13px;
+  display:flex; align-items:center; justify-content:center;
+  border:2px solid rgba(255,255,255,0.5); z-index:5;
+}
+.card-list-cond {
+  position:absolute; bottom:4px; right:5px;
+  width:22px; height:22px; border-radius:50%;
+  background:rgba(0,0,0,0.65); color:white;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:11px;
+  display:flex; align-items:center; justify-content:center;
+  border:1.5px solid rgba(255,255,255,0.4);
+}
+.card-list-close {
+  width:100%;margin-top:14px;padding:10px;border-radius:12px;
+  border:none;background:linear-gradient(135deg,#4a9eff,#1a6fd4);
+  color:white;font-family:'Noto Sans KR',sans-serif;font-weight:700;
+  cursor:pointer;font-size:0.9rem;
+}
+`;
+document.head.appendChild(condCSS);
+
+let cardListOverlay = null;
+function openCardList(card) {
+  const myCards = (state.ownedCards||[]).filter(c=>c.id===card.id);
+  if(myCards.length === 0) return;
+  if(myCards.length === 1) { openZoom(card, 1, myCards[0]); return; }
+
+  if(!cardListOverlay) {
+    cardListOverlay = document.createElement('div');
+    cardListOverlay.className = 'card-list-overlay';
+    cardListOverlay.onclick = (e) => { if(e.target===cardListOverlay) closeCardList(); };
+    document.body.appendChild(cardListOverlay);
+  }
+  cardListOverlay.innerHTML = `
+    <div class="card-list-wrap">
+      <div class="card-list-title">${card.name} ${GRADE_LABEL[card.grade]} — ${myCards.length}장 보유</div>
+      <div class="card-list-grid">
+        ${myCards.map((oc, i) => {
+          const cs = conditionStyle(oc.condition);
+          return `<div class="card-list-item" onclick="closeCardList();openZoom(window.getCARDS().find(c=>c.id==='${card.id}'),1,${JSON.stringify(oc).replace(/"/g,'&quot;')})">
+            <img src="${card.img}">
+            ${cs==='gold'?'<div class="cond-gold-overlay"></div>':''}
+            ${cs==='holo'?'<div class="cond-holo-overlay"></div>':''}
+            <div class="card-list-cond">${oc.condition}</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <button class="card-list-close" onclick="closeCardList()">닫기</button>
+    </div>`;
+  cardListOverlay.classList.add('show');
+}
+function closeCardList() { if(cardListOverlay) cardListOverlay.classList.remove('show'); }
+
 // 카드 확대
 let currentZoomCard = null;
-function openZoom(card, cnt){
+let currentOwnedCard = null;
+function openZoom(card, cnt, ownedCard){
   currentZoomCard = card;
+  currentOwnedCard = ownedCard || null;
   const zCard=document.getElementById('zoomCard');
   zCard.className='zoom-card grade-'+card.grade;
   document.getElementById('zName').textContent=card.name;
@@ -1657,7 +1803,26 @@ function openZoom(card, cnt){
 
   const holo=document.getElementById('zoomHolo');
   holo.style.cssText='';
-  if(GRADE_HOLO[card.grade]){
+
+  // 컨디션 기반 오버레이
+  if(ownedCard) {
+    const cs = conditionStyle(ownedCard.condition);
+    if(cs === 'gold') {
+      holo.style.background='repeating-linear-gradient(120deg,rgba(255,215,0,0.4) 0%,rgba(255,170,0,0.3) 25%,rgba(255,240,100,0.45) 50%,rgba(255,215,0,0.4) 75%)';
+      holo.style.backgroundSize='200% 200%';
+      holo.style.animation='colAuroraSR 2s ease-in-out infinite';
+      holo.style.opacity='0.8';
+      holo.style.mixBlendMode='screen';
+      holo.style.borderRadius='20px';
+    } else if(cs === 'holo' || GRADE_HOLO[card.grade]) {
+      holo.style.background=GRADE_HOLO[card.grade]||'repeating-linear-gradient(120deg,rgba(192,132,252,0.25) 0%,rgba(100,180,255,0.2) 25%,rgba(255,100,200,0.2) 50%,rgba(192,132,252,0.25) 75%)';
+      holo.style.opacity=card.grade==='lg'?'0.65':'0';
+      holo.style.mixBlendMode='screen';
+      holo.style.borderRadius='20px';
+      holo.style.transition='opacity 0.3s';
+      if(card.grade==='lg') holo.style.animation='legendSpin 4s linear infinite';
+    }
+  } else if(GRADE_HOLO[card.grade]){
     holo.style.background=GRADE_HOLO[card.grade];
     holo.style.opacity=card.grade==='lg'?'0.65':'0';
     holo.style.mixBlendMode='screen';
@@ -1666,12 +1831,19 @@ function openZoom(card, cnt){
     if(card.grade==='lg') holo.style.animation='legendSpin 4s linear infinite';
   }
 
-  document.getElementById('zoomInfo').innerHTML=cnt>1?`<span class="zoom-dup">×${cnt}장 보유</span>`:'';
-  document.getElementById('exchangeBtn').style.display = cnt >= 10 ? '' : 'none';
+  const myCards = (state.ownedCards||[]).filter(c=>c.id===card.id);
+  const cs = ownedCard ? conditionStyle(ownedCard.condition) : 'normal';
+  const condBg = cs==='gold' ? '' : cs==='holo' ? 'linear-gradient(135deg,#c084fc,#4d96ff)' : '#444';
+  const condColor = cs==='gold' ? '#7a4a00' : 'white';
+  const condClass = cs==='gold' ? 'cond-badge-gold' : '';
+  const condText = ownedCard ? `<span class="zoom-cond ${condClass}" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:1rem;width:36px;height:36px;border-radius:50%;${condBg?'background:'+condBg+';':''}color:${condColor};display:inline-flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.4);box-shadow:0 2px 8px rgba(0,0,0,0.25);">${ownedCard.condition}</span>` : '';
+  document.getElementById('zoomInfo').innerHTML = condText + (myCards.length>1?`<span class="zoom-dup">×${myCards.length}장 보유</span>`:'');
+  document.getElementById('exchangeBtn').style.display = myCards.length >= 10 ? '' : 'none';
   document.getElementById('zoomOverlay').classList.add('show');
 
   const wrap=document.querySelector('.zoom-card-wrap');
   wrap.onmousemove=(e)=>{
+    if(ownedCard && conditionStyle(ownedCard.condition)==='gold') return;
     if(!GRADE_HOLO[card.grade])return;
     const r=zCard.getBoundingClientRect();
     const x=(e.clientX-r.left)/r.width;
@@ -1683,21 +1855,24 @@ function openZoom(card, cnt){
     holo.style.setProperty('--angle',angle+'deg');
     holo.style.background=GRADE_HOLO[card.grade];
   };
-  wrap.onmouseleave=()=>{ if(card.grade!=='lg') holo.style.opacity='0'; };
+  wrap.onmouseleave=()=>{ if(card.grade!=='lg' && !(ownedCard&&conditionStyle(ownedCard.condition)==='gold')) holo.style.opacity='0'; };
 }
 
 // 교환
 function exchangeCard(){
   if(!currentZoomCard) return;
-  const cnt = state.collection[currentZoomCard.id] || 0;
-  if(cnt < 10){ showToast('10장이 필요해요!'); return; }
-  state.collection[currentZoomCard.id] -= 10;
+  const myCards = (state.ownedCards||[]).filter(c=>c.id===currentZoomCard.id);
+  if(myCards.length < 10){ showToast('10장이 필요해요!'); return; }
+  // 컨디션 낮은 것부터 10장 제거
+  const sorted = [...myCards].sort((a,b)=>a.condition-b.condition);
+  const toRemove = sorted.slice(0,10).map(c=>c.uid);
+  state.ownedCards = state.ownedCards.filter(c=>!toRemove.includes(c.uid));
   state.tickets += 1;
   saveState();
   showToast('뽑기권 1장으로 교환했어요!');
-  const newCnt = state.collection[currentZoomCard.id];
-  document.getElementById('zoomInfo').innerHTML = newCnt > 1 ? `<span class="zoom-dup">×${newCnt}장 보유</span>` : '';
-  document.getElementById('exchangeBtn').style.display = newCnt >= 10 ? '' : 'none';
+  const remaining = (state.ownedCards||[]).filter(c=>c.id===currentZoomCard.id).length;
+  document.getElementById('zoomInfo').innerHTML = remaining > 1 ? `<span class="zoom-dup">×${remaining}장 보유</span>` : '';
+  document.getElementById('exchangeBtn').style.display = remaining >= 10 ? '' : 'none';
   updateUI(); renderGrid();
 }
 function closeZoom(e){ if(e.target.id==='zoomOverlay') document.getElementById('zoomOverlay').classList.remove('show'); }
@@ -1747,13 +1922,13 @@ function setSynthGrade(grade, btn) {
 function renderSynthCards() {
   const grid = document.getElementById('synthCardGrid');
   grid.innerHTML = '';
-  const cards = CARDS.filter(c => c.grade === synthGrade && (state.collection[c.id]||0) > 0);
+  const cards = CARDS.filter(c => c.grade === synthGrade && (state.ownedCards||[]).some(oc=>oc.id===c.id));
   if(cards.length === 0) {
     grid.innerHTML = '<div class="col-empty" style="grid-column:1/-1">이 등급의 카드가 없어요!</div>';
     return;
   }
   cards.forEach(card => {
-    const cnt = state.collection[card.id] || 0;
+    const cnt = (state.ownedCards||[]).filter(oc=>oc.id===card.id).length;
     const used = synthSlots.filter(s=>s&&s.id===card.id).length;
     const avail = cnt - used;
     const div = document.createElement('div');
@@ -1816,10 +1991,12 @@ function doSynth() {
   const grades = ['n','r','sr','ur','lg'];
   const gradeIdx = grades.indexOf(grade);
 
-  // 재료 차감
+  // 재료 차감 (컨디션 낮은 것부터)
   synthSlots.forEach(card => {
-    state.collection[card.id]--;
-    if(state.collection[card.id] <= 0) delete state.collection[card.id];
+    const owned = (state.ownedCards||[]).filter(c=>c.id===card.id).sort((a,b)=>a.condition-b.condition);
+    if(owned.length > 0) {
+      state.ownedCards = state.ownedCards.filter(c=>c.uid!==owned[0].uid);
+    }
   });
 
   // 결과 결정 (10% 업그레이드)
@@ -1831,8 +2008,8 @@ function doSynth() {
   const pool = CARDS.filter(c => c.grade === resultGrade);
   const resultCard = pool[Math.floor(Math.random() * pool.length)];
   synthResultCard = resultCard;
-  if(!state.collection[resultCard.id]) state.collection[resultCard.id] = 0;
-  state.collection[resultCard.id]++;
+  const newCondition = randomCondition();
+  state.ownedCards.push({ uid: genUid(), id: resultCard.id, condition: newCondition });
   saveState();
 
   // 앞면 세팅
@@ -1878,7 +2055,9 @@ let synthResultCard = null;
 function openZoomFromSynth() {
   if(!document.getElementById('synthResultInner').classList.contains('flipped')) return;
   if(!synthResultCard) return;
-  openZoom(synthResultCard, state.collection[synthResultCard.id] || 1);
+  const myCards = (state.ownedCards||[]).filter(c=>c.id===synthResultCard.id);
+  const latest = myCards[myCards.length-1];
+  openZoom(synthResultCard, myCards.length, latest);
 }
 
 // 상점
@@ -1898,7 +2077,7 @@ function confirmPremium() {
   const r = Math.random();
   if(r < 0.80) {
     // 80% - 뽑기권 지급
-    const amount = Math.floor(Math.random() * 20) + 1;
+    const amount = Math.floor(Math.random() * 15) + 1;
     state.tickets += amount;
     saveState();
     updateUI();
@@ -1919,8 +2098,8 @@ function confirmPremium() {
   const card = pool[Math.floor(Math.random() * pool.length)];
   shopResultCard = card;
 
-  if(!state.collection[card.id]) state.collection[card.id] = 0;
-  state.collection[card.id]++;
+  if(!state.ownedCards) state.ownedCards = [];
+  state.ownedCards.push({ uid: genUid(), id: card.id, condition: randomCondition() });
   saveState();
 
   document.getElementById('shopResultWrap').style.display = '';
@@ -1956,7 +2135,10 @@ function confirmPremium() {
 function flipShopCard() {
   const inner = document.getElementById('shopResultInner');
   if(inner.classList.contains('flipped')) {
-    if(shopResultCard) openZoom(shopResultCard, state.collection[shopResultCard.id]||1);
+    if(shopResultCard) {
+      const myCards = (state.ownedCards||[]).filter(c=>c.id===shopResultCard.id);
+      openZoom(shopResultCard, myCards.length, myCards[myCards.length-1]);
+    }
     return;
   }
   if(shopResultCard && ['sr','ur','lg'].includes(shopResultCard.grade)) gradeFlash(shopResultCard.grade);
@@ -2058,6 +2240,7 @@ function showToast(msg){
   toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
 }
 window.showToast = showToast;
+window.conditionStyle = conditionStyle;
 
 // 도감
 const DEX_CHARS = [
@@ -2074,7 +2257,8 @@ function renderDex() {
   wrap.innerHTML = '';
   DEX_CHARS.forEach(char => {
     const cards = DEX_GRADES.map(g => CARDS.find(c => c.id === char.key + '_' + g)).filter(Boolean);
-    const owned = cards.filter(c => state.collection[c.id] > 0).length;
+    const ownedIds = new Set((state.ownedCards||[]).map(c=>c.id));
+    const owned = cards.filter(c => ownedIds.has(c.id)).length;
     const block = document.createElement('div');
     block.className = 'dex-char-block';
     block.innerHTML = `
@@ -2084,7 +2268,7 @@ function renderDex() {
       </div>
       <div class="dex-card-row">
         ${cards.map(card => {
-          const cnt = state.collection[card.id] || 0;
+          const cnt = (state.ownedCards||[]).filter(c=>c.id===card.id).length;
           const locked = cnt === 0;
           const gradeColors = {n:'#555',r:'#1a3a6a',sr:'#2d1b4e',ur:'#3a2800',lg:''};
           const gradeTextColors = {n:'#ccc',r:'#7eb8ff',sr:'#d4a8ff',ur:'#ffd97a',lg:'#fff'};
@@ -2151,11 +2335,14 @@ window.loadPosts = async function() {
         lg: 'repeating-linear-gradient(120deg,rgba(255,80,80,0.25) 0%,rgba(255,200,50,0.25) 15%,rgba(80,220,120,0.25) 30%,rgba(80,160,255,0.25) 45%,rgba(180,80,255,0.25) 60%,rgba(255,80,80,0.25) 75%)'
       };
       const hasHolo = d.cardGrade && ['sr','ur','lg'].includes(d.cardGrade);
+      const condBg = d.cardCondition >= 9 ? 'linear-gradient(135deg,#ffd700,#ffaa00)' : d.cardCondition >= 6 ? 'linear-gradient(135deg,#c084fc,#4d96ff)' : 'rgba(0,0,0,0.65)';
+      const condColor = d.cardCondition >= 9 ? '#7a4a00' : 'white';
       el.innerHTML = `
         ${d.cardImg
           ? `<div class="comm-post-card" style="position:relative;">
                <img src="${d.cardImg}">
                ${hasHolo ? `<div style="position:absolute;inset:0;background:${auroraStyles[d.cardGrade]};background-size:200% 200%;animation:colAuroraSR 3s ease-in-out infinite;mix-blend-mode:screen;border-radius:6px;"></div>` : ''}
+               ${d.cardCondition ? `<div style="position:absolute;bottom:3px;right:3px;width:18px;height:18px;border-radius:50%;background:${condBg};color:${condColor};font-family:Nunito,sans-serif;font-weight:900;font-size:10px;display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(255,255,255,0.5);">${d.cardCondition}</div>` : ''}
              </div>`
           : `<div class="comm-post-card-empty">?</div>`}
         <div class="comm-post-body">
@@ -2186,10 +2373,13 @@ window.openPostDetail = function(d, docId, timeStr) {
   const hasHolo = d.cardGrade && ['sr','ur','lg'].includes(d.cardGrade);
 
   if(d.cardImg) {
+    const detailCondBg = d.cardCondition >= 9 ? 'linear-gradient(135deg,#ffd700,#ffaa00)' : d.cardCondition >= 6 ? 'linear-gradient(135deg,#c084fc,#4d96ff)' : 'rgba(0,0,0,0.65)';
+    const detailCondColor = d.cardCondition >= 9 ? '#7a4a00' : 'white';
     document.getElementById('postDetailCard').innerHTML = `
       <div class="post-detail-card-wrap" id="postDetailCardWrap">
         <img src="${d.cardImg}">
         ${hasHolo ? `<div class="post-detail-holo" id="postDetailHolo" style="background:${auroraStyles[d.cardGrade]};background-size:200% 200%;${d.cardGrade==='lg'?'opacity:0.6;animation:colAuroraLG 2s linear infinite;':''}"></div>` : ''}
+        ${d.cardCondition ? `<div style="position:absolute;bottom:6px;right:6px;width:26px;height:26px;border-radius:50%;background:${detailCondBg};color:${detailCondColor};font-family:Nunito,sans-serif;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.6);z-index:5;">${d.cardCondition}</div>` : ''}
       </div>`;
 
     setTimeout(() => {
@@ -2255,11 +2445,12 @@ window.submitPost = async function() {
   const cardImg = selected ? selected.dataset.img : null;
   const cardGrade = selected ? selected.dataset.grade : null;
   const cardName = selected ? selected.dataset.name : null;
+  const cardCondition = selected ? parseInt(selected.dataset.condition) : null;
   const btn = document.querySelector('.comm-submit-btn');
   btn.textContent = '올리는 중...'; btn.disabled = true;
   try {
     await addDoc(collection(db, 'posts'), {
-      nickname, text, password, cardImg, cardGrade, cardName,
+      nickname, text, password, cardImg, cardGrade, cardName, cardCondition,
       createdAt: serverTimestamp()
     });
     window.closePostModal();
@@ -2275,18 +2466,28 @@ window.submitPost = async function() {
 window.openPostModal = function() {
   const grid = document.getElementById('postCardGrid');
   grid.innerHTML = '';
-  const state = window.getState();
-  const owned = window.getCARDS().filter(c => state.collection[c.id] > 0);
-  if(owned.length === 0) {
+  const ownedCards = window.getState().ownedCards || [];
+  const allCards = window.getCARDS();
+
+  // ownedCard 하나하나 개별로 표시
+  if(ownedCards.length === 0) {
     grid.innerHTML = '<div style="font-size:0.78rem;color:var(--muted)">보유한 카드가 없어요</div>';
   } else {
-    owned.forEach(card => {
+    ownedCards.forEach(oc => {
+      const card = allCards.find(c => c.id === oc.id);
+      if(!card) return;
       const el = document.createElement('div');
       el.className = 'post-card-item';
+      el.style.position = 'relative';
       el.dataset.img = card.img;
       el.dataset.grade = card.grade;
       el.dataset.name = card.name;
-      el.innerHTML = `<img src="${card.img}" alt="${card.name}">`;
+      el.dataset.condition = oc.condition;
+      const cs = window.conditionStyle ? window.conditionStyle(oc.condition) : (oc.condition>=9?'gold':oc.condition>=6?'holo':'normal');
+      const badgeBg = cs==='gold'?'linear-gradient(135deg,#ffd700,#ffaa00)':cs==='holo'?'linear-gradient(135deg,#c084fc,#4d96ff)':'rgba(0,0,0,0.65)';
+      const badgeColor = cs==='gold'?'#7a4a00':'white';
+      el.innerHTML = `<img src="${card.img}" alt="${card.name}">
+        <div style="position:absolute;bottom:3px;right:3px;width:18px;height:18px;border-radius:50%;background:${badgeBg};color:${badgeColor};font-family:Nunito,sans-serif;font-weight:900;font-size:10px;display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(255,255,255,0.5);">${oc.condition}</div>`;
       el.onclick = () => {
         document.querySelectorAll('.post-card-item').forEach(i => i.classList.remove('selected'));
         el.classList.toggle('selected');
