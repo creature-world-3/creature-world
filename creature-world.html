@@ -1466,8 +1466,8 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
     <div style="font-size:0.78rem;font-weight:700;color:var(--text);margin:12px 0 8px;">취소용 비밀번호</div>
     <input class="trade-price-input" id="tradePasswordInput" type="password" placeholder="취소용 비밀번호" maxlength="20">
     <div style="display:flex;gap:8px;margin-top:16px;">
-      <button class="comm-close-btn" style="flex:1" onclick="closeTradeModal()">닫기</button>
-      <button class="comm-submit-btn" id="tradeSubmitBtn" onclick="submitTrade()">등록하기</button>
+      <button class="comm-close-btn" style="flex:1" onclick="window.closeTradeModalForce()">닫기</button>
+      <button class="comm-submit-btn" id="tradeSubmitBtn" onclick="window.submitTrade()">등록하기</button>
     </div>
   </div>
 </div>
@@ -2926,6 +2926,12 @@ window.closeTradeModal = function(e) {
   }
 };
 
+window.closeTradeModalForce = function() {
+  document.getElementById('tradeModal').classList.remove('show');
+  const btn = document.getElementById('tradeSubmitBtn');
+  if(btn) { btn.textContent = '등록하기'; btn.disabled = false; }
+};
+
 window.submitTrade = async function() {
   const selectedTradeCard = window.selectedTradeCard;
   if(!selectedTradeCard) { alert('카드를 선택해줘!'); return; }
@@ -2936,19 +2942,22 @@ window.submitTrade = async function() {
   const password = document.getElementById('tradePasswordInput').value.trim();
   if(!password) { alert('취소용 비밀번호를 입력해줘!'); return; }
 
-  // 내 거래소 등록 카드 수 체크
-  const state = window.getState();
-  const existingSnap = await getDocs(query(collection(db, 'trades'), orderBy('createdAt', 'desc')));
-  const myTrades = existingSnap.docs.filter(d => d.data().nickname === nickname);
-  if(myTrades.length >= 3) { alert('닉네임당 최대 3장까지 등록할 수 있어!'); return; }
-
   const btn = document.getElementById('tradeSubmitBtn');
   btn.textContent = '등록 중...'; btn.disabled = true;
 
   try {
+    // 내 거래소 등록 카드 수 체크
+    const state = window.getState();
+    const existingSnap = await getDocs(query(collection(db, 'trades'), orderBy('createdAt', 'desc')));
+    const myTrades = existingSnap.docs.filter(d => d.data().nickname === nickname);
+    if(myTrades.length >= 3) {
+      alert('닉네임당 최대 3장까지 등록할 수 있어!');
+      btn.textContent = '등록하기'; btn.disabled = false;
+      return;
+    }
+
     // 카드 내 컬렉션에서 제거
     state.ownedCards = (state.ownedCards||[]).filter(c => c.uid !== selectedTradeCard.uid);
-    // saveState는 window.getState()로 참조하므로 직접 호출
     localStorage.setItem('cw_state', JSON.stringify(state));
 
     await addDoc(collection(db, 'trades'), {
@@ -2964,20 +2973,22 @@ window.submitTrade = async function() {
       createdAt: serverTimestamp()
     });
 
-    window.closeTradeModal();
-    window.showToast('거래소에 등록됐어요!');
+    window.closeTradeModalForce();
+    window.showToast('거래소에 등록됐어요! 🎉');
     window.loadTrades();
-    // UI 업데이트
     if(window.updateUI) window.updateUI();
     if(window.renderGrid) window.renderGrid();
   } catch(e) {
     console.error(e);
     // 실패시 카드 돌려주기
+    const state = window.getState();
     state.ownedCards = state.ownedCards || [];
     state.ownedCards.push({ uid: selectedTradeCard.uid, id: selectedTradeCard.cardId, condition: selectedTradeCard.condition });
     localStorage.setItem('cw_state', JSON.stringify(state));
     btn.textContent = '등록하기'; btn.disabled = false;
     alert('등록 실패 ㅠㅠ 다시 시도해줘!');
+  }
+};
   }
 };
 
