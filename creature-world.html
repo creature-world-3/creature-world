@@ -2122,15 +2122,25 @@ function switchTab(tab, btn) {
     renderDex();
   } else if(tab === 'community') {
     document.getElementById('communitySection').classList.add('show');
-    if(window.loadPosts) { window.loadPosts(); }
-    else { document.getElementById('communityList').innerHTML = '<div class="comm-loading">초기화 중... 잠시 후 다시 눌러줘</div>'; }
+    if(window.loadPosts) {
+      window.loadPosts();
+    } else {
+      document.getElementById('communityList').innerHTML = '<div class="comm-loading">불러오는 중...</div>';
+      const retry = setInterval(() => {
+        if(window.loadPosts) { clearInterval(retry); window.loadPosts(); }
+      }, 300);
+      setTimeout(() => clearInterval(retry), 5000);
+    }
   } else if(tab === 'trade') {
     document.getElementById('tradeSection').classList.add('show');
     if(window.loadTrades) {
       window.loadTrades();
     } else {
       document.getElementById('tradeList').innerHTML = '<div class="trade-empty">불러오는 중...</div>';
-      setTimeout(() => { if(window.loadTrades) window.loadTrades(); }, 1500);
+      const retry = setInterval(() => {
+        if(window.loadTrades) { clearInterval(retry); window.loadTrades(); }
+      }, 300);
+      setTimeout(() => clearInterval(retry), 5000);
     }
   }
 }
@@ -2997,7 +3007,6 @@ window.submitTrade = async function() {
     alert('등록 실패 ㅠㅠ 다시 시도해줘!');
   }
 };
-  }
 };
 
 window.loadTrades = async function() {
@@ -3096,6 +3105,15 @@ window.cancelTrade = async function(docId, savedPw, cardId, condition) {
     alert('취소 실패 ㅠㅠ');
   }
 };
+
+// Firebase 모듈 로드 완료 후 현재 활성 탭에 맞게 자동 로드
+(function() {
+  const activeTab = document.querySelector('.page-tab.active');
+  if(!activeTab) return;
+  const tabText = activeTab.textContent.trim();
+  if(tabText === '게시판') window.loadPosts();
+  else if(tabText === '거래소') window.loadTrades();
+})();
 </script>
 </body>
 </html>
