@@ -393,11 +393,15 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
 .grade-lg .col-grade { background:linear-gradient(90deg,#ff6b6b,#4d96ff,#c77dff); color:#fff; }
 
 /* 페이지 탭 */
-.page-tabs { display:flex; gap:8px; margin-bottom:20px; }
+.page-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
 .page-tab {
-  padding:10px 24px; border-radius:12px; border:1.5px solid #d0eaf8;
+  padding:10px 0; border-radius:12px; border:1.5px solid #d0eaf8;
   background:white; color:var(--muted); font-size:0.85rem; font-weight:700;
   cursor:pointer; transition:all 0.2s; font-family:'Noto Sans KR',sans-serif;
+  flex: 1 1 calc(33.333% - 8px); min-width:0; text-align:center;
+}
+@media(min-width:600px) {
+  .page-tab { flex: 1; padding:10px 24px; }
 }
 .page-tab.active { background:var(--blue-dark); color:white; border-color:var(--blue-dark); }
 .page-tab:hover:not(.active) { background:#e8f4fd; }
@@ -2122,8 +2126,12 @@ function switchTab(tab, btn) {
     else { document.getElementById('communityList').innerHTML = '<div class="comm-loading">초기화 중... 잠시 후 다시 눌러줘</div>'; }
   } else if(tab === 'trade') {
     document.getElementById('tradeSection').classList.add('show');
-    if(window.loadTrades) { window.loadTrades(); }
-    else { document.getElementById('tradeList').innerHTML = '<div class="trade-empty">초기화 중... 잠시 후 다시 눌러줘</div>'; }
+    if(window.loadTrades) {
+      window.loadTrades();
+    } else {
+      document.getElementById('tradeList').innerHTML = '<div class="trade-empty">불러오는 중...</div>';
+      setTimeout(() => { if(window.loadTrades) window.loadTrades(); }, 1500);
+    }
   }
 }
 
