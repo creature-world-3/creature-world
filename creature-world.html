@@ -1439,7 +1439,10 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   <div class="trade-section">
     <div class="trade-header-row">
       <div class="trade-title">🏪 카드 거래소</div>
-      <button class="trade-register-btn" onclick="window.openTradeModal()">+ 카드 등록</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="trade-register-btn" onclick="window.openTradeModal()">+ 카드 등록</button>
+        <button style="padding:8px 16px;border-radius:99px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;font-family:'Noto Sans KR',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;transition:all 0.2s;" onclick="window.openClaimModal()">🎟️ 보상 수령</button>
+      </div>
     </div>
     <div style="font-size:0.78rem;color:var(--muted);margin-top:-8px;">내 카드를 올리고 원하는 뽑기권 수량을 받아요! (최대 3장 등록)</div>
     <div class="trade-list" id="tradeList">
@@ -1466,12 +1469,26 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
     <div style="font-size:0.8rem;font-weight:700;color:var(--text);margin-bottom:8px;">원하는 뽑기권 수</div>
     <input class="trade-price-input" id="tradePriceInput" type="number" min="1" max="9999" placeholder="뽑기권 수량 입력 (예: 50)">
     <div style="font-size:0.78rem;font-weight:700;color:var(--text);margin:12px 0 8px;">닉네임</div>
-    <input class="trade-price-input" id="tradeNicknameInput" placeholder="닉네임" maxlength="10">
+    <input class="trade-price-input" id="tradeNicknameInput" placeholder="닉네임 (보상 수령 시 사용)" maxlength="10">
     <div style="font-size:0.78rem;font-weight:700;color:var(--text);margin:12px 0 8px;">취소용 비밀번호</div>
     <input class="trade-price-input" id="tradePasswordInput" type="password" placeholder="취소용 비밀번호" maxlength="20">
     <div style="display:flex;gap:8px;margin-top:16px;">
       <button class="comm-close-btn" style="flex:1" onclick="window.closeTradeModalForce()">닫기</button>
       <button class="comm-submit-btn" id="tradeSubmitBtn" onclick="window.submitTrade()">등록하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 보상 수령 모달 -->
+<div class="modal-overlay" id="claimModal" onclick="closeModalOut(event,'claimModal')">
+  <div class="modal">
+    <div class="modal-title">보상 수령</div>
+    <p style="font-size:0.82rem;color:var(--muted);margin-bottom:12px;line-height:1.6">카드가 팔리면 뽑기권이 쌓여요.<br>닉네임을 입력해서 수령하세요!</p>
+    <input class="post-nickname" id="claimNickname" placeholder="닉네임 입력" maxlength="10" style="margin-bottom:8px;">
+    <div id="claimResult" style="font-size:0.85rem;font-weight:700;min-height:22px;margin-bottom:12px;color:var(--blue-dark);"></div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="closeModal('claimModal')" style="flex:1;padding:12px;border-radius:12px;border:1.5px solid #d0eaf8;background:white;font-family:'Noto Sans KR',sans-serif;font-weight:700;cursor:pointer;">닫기</button>
+      <button onclick="window.claimRewards()" style="flex:2;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;font-family:'Noto Sans KR',sans-serif;font-weight:700;cursor:pointer;">수령하기</button>
     </div>
   </div>
 </div>
@@ -2129,7 +2146,7 @@ function switchTab(tab, btn) {
       const retry = setInterval(() => {
         if(window.loadPosts) { clearInterval(retry); window.loadPosts(); }
       }, 300);
-      setTimeout(() => clearInterval(retry), 5000);
+      setTimeout(() => clearInterval(retry), 10000);
     }
   } else if(tab === 'trade') {
     document.getElementById('tradeSection').classList.add('show');
@@ -2137,10 +2154,10 @@ function switchTab(tab, btn) {
       window.loadTrades();
     } else {
       document.getElementById('tradeList').innerHTML = '<div class="trade-empty">불러오는 중...</div>';
-      const retry = setInterval(() => {
-        if(window.loadTrades) { clearInterval(retry); window.loadTrades(); }
+      const retryTrade = setInterval(() => {
+        if(window.loadTrades) { clearInterval(retryTrade); window.loadTrades(); }
       }, 300);
-      setTimeout(() => clearInterval(retry), 5000);
+      setTimeout(() => clearInterval(retryTrade), 10000);
     }
   }
 }
@@ -2642,7 +2659,7 @@ loadState(); updateUI(); renderGrid('all', 'all');
 <!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, orderBy, query, limit, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, orderBy, query, limit, serverTimestamp, doc, deleteDoc, updateDoc, where, getDoc } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCEzOpFKjpbDfpesp-4JMg1Rhp71vxK4SE",
@@ -2869,14 +2886,13 @@ const auroraStylesT = {
   lg: 'repeating-linear-gradient(120deg,rgba(255,80,80,0.25) 0%,rgba(255,200,50,0.25) 15%,rgba(80,220,120,0.25) 30%,rgba(80,160,255,0.25) 45%,rgba(180,80,255,0.25) 60%,rgba(255,80,80,0.25) 75%)'
 };
 
-let tradeAllCards = []; // 전체 카드 캐시
+let tradeAllCards = [];
 
 window.openTradeModal = function() {
   const state = window.getState();
   const myCards = state.ownedCards || [];
   window.selectedTradeCard = null;
   tradeAllCards = [];
-
   if(myCards.length > 0) {
     const allCards = window.getCARDS();
     myCards.forEach(oc => {
@@ -2885,13 +2901,9 @@ window.openTradeModal = function() {
       tradeAllCards.push({ oc, card });
     });
   }
-
-  // 필터 초기화
   document.querySelectorAll('#tradeGradeFilter .col-filter-btn').forEach(b=>b.classList.remove('active'));
   document.querySelector('#tradeGradeFilter .col-filter-btn').classList.add('active');
-
   renderTradeCardGrid('all');
-
   document.getElementById('tradePriceInput').value = '';
   document.getElementById('tradeNicknameInput').value = '';
   document.getElementById('tradePasswordInput').value = '';
@@ -2909,12 +2921,10 @@ window.renderTradeCardGrid = function(grade) {
   const grid = document.getElementById('tradeCardGrid');
   grid.innerHTML = '';
   const filtered = grade === 'all' ? tradeAllCards : tradeAllCards.filter(({card}) => card.grade === grade);
-
   if(filtered.length === 0) {
     grid.innerHTML = '<div style="font-size:0.78rem;color:var(--muted);grid-column:1/-1;">해당 등급 카드가 없어요</div>';
     return;
   }
-
   filtered.forEach(({oc, card}) => {
     const cs = window.conditionStyle(oc.condition);
     const badgeBg = cs==='gold'?'linear-gradient(135deg,#ffd700,#ffaa00)':cs==='holo'?'linear-gradient(135deg,#c084fc,#4d96ff)':'rgba(0,0,0,0.65)';
@@ -2932,7 +2942,7 @@ window.renderTradeCardGrid = function(grade) {
     };
     grid.appendChild(el);
   });
-}
+};
 
 function renderTradeCardGrid(grade) { window.renderTradeCardGrid(grade); }
 
@@ -2959,12 +2969,9 @@ window.submitTrade = async function() {
   if(!nickname) { alert('닉네임을 입력해줘!'); return; }
   const password = document.getElementById('tradePasswordInput').value.trim();
   if(!password) { alert('취소용 비밀번호를 입력해줘!'); return; }
-
   const btn = document.getElementById('tradeSubmitBtn');
   btn.textContent = '등록 중...'; btn.disabled = true;
-
   try {
-    // 내 거래소 등록 카드 수 체크
     const state = window.getState();
     const existingSnap = await getDocs(query(collection(db, 'trades'), orderBy('createdAt', 'desc')));
     const myTrades = existingSnap.docs.filter(d => d.data().nickname === nickname);
@@ -2973,11 +2980,8 @@ window.submitTrade = async function() {
       btn.textContent = '등록하기'; btn.disabled = false;
       return;
     }
-
-    // 카드 내 컬렉션에서 제거
     state.ownedCards = (state.ownedCards||[]).filter(c => c.uid !== selectedTradeCard.uid);
     localStorage.setItem('cw_state', JSON.stringify(state));
-
     await addDoc(collection(db, 'trades'), {
       cardUid: selectedTradeCard.uid,
       cardId: selectedTradeCard.cardId,
@@ -2985,12 +2989,9 @@ window.submitTrade = async function() {
       cardImg: selectedTradeCard.cardImg,
       cardGrade: selectedTradeCard.cardGrade,
       condition: selectedTradeCard.condition,
-      price: price,
-      nickname: nickname,
-      password: password,
+      price, nickname, password,
       createdAt: serverTimestamp()
     });
-
     window.closeTradeModalForce();
     window.showToast('거래소에 등록됐어요! 🎉');
     window.loadTrades();
@@ -2998,7 +2999,6 @@ window.submitTrade = async function() {
     if(window.renderGrid) window.renderGrid();
   } catch(e) {
     console.error(e);
-    // 실패시 카드 돌려주기
     const state = window.getState();
     state.ownedCards = state.ownedCards || [];
     state.ownedCards.push({ uid: selectedTradeCard.uid, id: selectedTradeCard.cardId, condition: selectedTradeCard.condition });
@@ -3026,7 +3026,6 @@ window.loadTrades = async function() {
       const condBg = d.condition >= 9 ? 'linear-gradient(135deg,#ffd700,#ffaa00)' : d.condition >= 6 ? 'linear-gradient(135deg,#c084fc,#4d96ff)' : 'rgba(0,0,0,0.65)';
       const condColor = d.condition >= 9 ? '#7a4a00' : 'white';
       const gradeBg = d.cardGrade === 'lg' ? 'background:linear-gradient(90deg,#ff6b6b,#4d96ff,#c77dff)' : `background:${gradeColorsT[d.cardGrade]}`;
-
       const el = document.createElement('div');
       el.className = 'trade-item';
       el.innerHTML = `
@@ -3042,14 +3041,22 @@ window.loadTrades = async function() {
           <div class="trade-price">🎟️ ${d.price}장</div>
         </div>
         <div class="trade-actions">
-          <button class="trade-buy-btn" onclick="window.buyTrade('${docSnap.id}', '${d.nickname}', ${d.price}, '${d.cardId}', '${d.cardImg}', '${d.cardGrade}', ${d.condition})">구매</button>
-          <button class="trade-cancel-btn" onclick="window.cancelTrade('${docSnap.id}', '${d.password}', '${d.cardId}', ${d.condition})">취소</button>
+          <button class="trade-buy-btn" data-id="${docSnap.id}" data-nickname="${d.nickname}" data-price="${d.price}" data-cardid="${d.cardId}" data-cardimg="${d.cardImg}" data-cardgrade="${d.cardGrade}" data-condition="${d.condition}">구매</button>
+          <button class="trade-cancel-btn" data-id="${docSnap.id}" data-pw="${d.password}" data-cardid="${d.cardId}" data-condition="${d.condition}">취소</button>
         </div>`;
+      el.querySelector('.trade-buy-btn').addEventListener('click', (e) => {
+        const b = e.currentTarget;
+        window.buyTrade(b.dataset.id, b.dataset.nickname, parseInt(b.dataset.price), b.dataset.cardid, b.dataset.cardimg, b.dataset.cardgrade, parseInt(b.dataset.condition));
+      });
+      el.querySelector('.trade-cancel-btn').addEventListener('click', (e) => {
+        const b = e.currentTarget;
+        window.cancelTrade(b.dataset.id, b.dataset.pw, b.dataset.cardid, parseInt(b.dataset.condition));
+      });
       list.appendChild(el);
     });
   } catch(e) {
     list.innerHTML = '<div class="trade-empty">불러오기 실패 ㅠㅠ 다시 시도해줘요</div>';
-    console.error(e);
+    console.error('loadTrades 오류:', e);
   }
 };
 
@@ -3060,23 +3067,25 @@ window.buyTrade = async function(docId, sellerNickname, price, cardId, cardImg, 
     return;
   }
   if(!confirm(`뽑기권 ${price}장으로 구매할까요?`)) return;
-
   try {
-    // 거래 문서 삭제
     await deleteDoc(doc(db, 'trades', docId));
-
-    // 구매자 처리
+    // 판매자 보상 적립
+    await addDoc(collection(db, 'rewards'), {
+      nickname: sellerNickname,
+      amount: price,
+      status: 'pending',
+      createdAt: serverTimestamp()
+    });
     state.tickets -= price;
     state.ownedCards = state.ownedCards || [];
     state.ownedCards.push({ uid: 'trade_' + Date.now(), id: cardId, condition: condition });
     localStorage.setItem('cw_state', JSON.stringify(state));
-
     window.showToast('구매 완료! 카드를 획득했어요 🎉');
     window.loadTrades();
     if(window.updateUI) window.updateUI();
     if(window.renderGrid) window.renderGrid();
   } catch(e) {
-    console.error(e);
+    console.error('구매 오류:', e);
     window.showToast('구매 실패 ㅠㅠ 다시 시도해줘요');
   }
 };
@@ -3085,16 +3094,12 @@ window.cancelTrade = async function(docId, savedPw, cardId, condition) {
   const input = prompt('취소용 비밀번호를 입력해줘!');
   if(input === null) return;
   if(input !== savedPw) { alert('비밀번호가 틀렸어!'); return; }
-
   try {
     await deleteDoc(doc(db, 'trades', docId));
-
-    // 카드 돌려주기
     const state = window.getState();
     state.ownedCards = state.ownedCards || [];
     state.ownedCards.push({ uid: 'returned_' + Date.now(), id: cardId, condition: condition });
     localStorage.setItem('cw_state', JSON.stringify(state));
-
     window.showToast('등록이 취소됐어요! 카드가 돌아왔어요');
     window.loadTrades();
     if(window.updateUI) window.updateUI();
@@ -3102,6 +3107,43 @@ window.cancelTrade = async function(docId, savedPw, cardId, condition) {
   } catch(e) {
     console.error(e);
     alert('취소 실패 ㅠㅠ');
+  }
+};
+
+window.openClaimModal = function() {
+  document.getElementById('claimNickname').value = '';
+  document.getElementById('claimResult').textContent = '';
+  showModal('claimModal');
+};
+
+window.claimRewards = async function() {
+  const nickname = document.getElementById('claimNickname').value.trim();
+  if(!nickname) { alert('닉네임을 입력해줘!'); return; }
+  const resultEl = document.getElementById('claimResult');
+  resultEl.textContent = '조회 중...';
+  try {
+    const q = query(collection(db, 'rewards'), where('nickname', '==', nickname));
+    const snap = await getDocs(q);
+    const pendingDocs = [];
+    snap.forEach(docSnap => {
+      if(docSnap.data().status === 'pending') pendingDocs.push(docSnap);
+    });
+    if(pendingDocs.length === 0) { resultEl.textContent = '받을 보상이 없어요!'; return; }
+    let total = 0;
+    for(const docSnap of pendingDocs) {
+      total += docSnap.data().amount;
+      await updateDoc(doc(db, 'rewards', docSnap.id), { status: 'claimed' });
+    }
+    const s = window.getState();
+    s.tickets += total;
+    localStorage.setItem('cw_state', JSON.stringify(s));
+    if(window.updateUI) window.updateUI();
+    resultEl.textContent = `🎟️ ${total}장 수령 완료!`;
+    window.showToast(`보상 수령! 뽑기권 +${total}장!`);
+    setTimeout(() => closeModal('claimModal'), 1800);
+  } catch(e) {
+    console.error('수령 오류:', e);
+    resultEl.textContent = '수령 실패. 다시 시도해줘!';
   }
 };
 
