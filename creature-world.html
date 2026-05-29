@@ -85,6 +85,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   -webkit-transform-style: preserve-3d;
   transition: transform 0.7s cubic-bezier(.4,0,.2,1);
   -webkit-transition: -webkit-transform 0.7s cubic-bezier(.4,0,.2,1);
+  will-change: transform;
 }
 .draw-card-inner.flipped { 
   transform: rotateY(180deg); 
@@ -304,6 +305,8 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   background-size: 200% 200%;
   animation: colAuroraSR 3s ease-in-out infinite;
   opacity: 1;
+  will-change: background-position;
+  transform: translateZ(0);
 }
 .col-card.grade-ur::after {
   background: repeating-linear-gradient(
@@ -314,6 +317,8 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   background-size: 200% 200%;
   animation: colAuroraUR 2.5s ease-in-out infinite;
   opacity: 1;
+  will-change: background-position;
+  transform: translateZ(0);
 }
 .col-card.grade-lg::after {
   background: repeating-linear-gradient(
@@ -325,6 +330,8 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   background-size: 300% 300%;
   animation: colAuroraLG 2s linear infinite;
   opacity: 1;
+  will-change: background-position;
+  transform: translateZ(0);
 }
 @keyframes colAuroraSR {
   0%,100% { background-position:0% 0%;   --col-angle:100deg; }
@@ -476,6 +483,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.3);
   opacity:0;
   transition:transform 0.18s ease, box-shadow 0.18s ease;
+  will-change: transform, opacity;
 }
 .draw10-card.burst-done {
   transition:transform 0.18s ease, box-shadow 0.18s ease;
@@ -632,6 +640,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   width:100%; height:100%; position:relative;
   transform-style:preserve-3d; -webkit-transform-style:preserve-3d;
   transition:transform 0.7s cubic-bezier(.4,0,.2,1);
+  will-change: transform;
 }
 .synth-result-inner.flipped { transform:rotateY(180deg); -webkit-transform:rotateY(180deg); }
 .synth-result-face {
@@ -784,6 +793,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   position:fixed; inset:0; pointer-events:none; z-index:150;
   display:flex; align-items:center; justify-content:center;
   animation:gradeFlashOut 1s forwards;
+  will-change: opacity;
 }
 @keyframes gradeFlashOut { 0%{opacity:1} 100%{opacity:0} }
 .grade-flash-sr  { background:radial-gradient(ellipse at center, rgba(192,132,252,0.6) 0%, transparent 70%); }
@@ -926,6 +936,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   position:fixed; pointer-events:none;
   font-family:'Nunito',sans-serif; font-weight:900; font-size:1rem; color:#1a6fd4;
   animation:floatUp 0.8s ease-out forwards; z-index:400;
+  will-change: transform, opacity;
 }
 @keyframes floatUp { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-50px)} }
 
@@ -993,6 +1004,7 @@ header { text-align: center; padding: 32px 0 20px; position: relative; display:f
   width:100%; height:100%; position:relative;
   transform-style:preserve-3d; -webkit-transform-style:preserve-3d;
   transition:transform 0.7s cubic-bezier(.4,0,.2,1);
+  will-change: transform;
 }
 .shop-result-inner.flipped { transform:rotateY(180deg); }
 .shop-result-back, .shop-result-front {
@@ -1631,6 +1643,7 @@ const GRADE_HOLO = {
 };
 
 let state = {};
+let _currentTab = 'main';
 window.getCARDS = () => CARDS;
 window.getState = () => state;
 let uidCounter = 0;
@@ -1802,6 +1815,7 @@ function setFilter(filter, btn) {
 
 // 수집북
 function renderGrid(charFilter, gradeFilter){
+  if(_currentTab !== 'main') return;
   charFilter = charFilter !== undefined ? charFilter : currentChar;
   gradeFilter = gradeFilter !== undefined ? gradeFilter : currentGrade;
   currentChar = charFilter;
@@ -1841,7 +1855,7 @@ function renderGrid(charFilter, gradeFilter){
       const best = myCards.reduce((a,b) => b.condition > a.condition ? b : a);
       const cStyle = conditionStyle(best.condition);
       div.innerHTML = `
-        <img src="${card.img}" alt="${card.name}">
+        <img src="${card.img}" alt="${card.name}" loading="lazy">
         ${cStyle==='gold' ? '<div class="cond-gold-overlay"></div>' : ''}
         ${cStyle==='holo' ? '<div class="cond-holo-overlay"></div>' : ''}
         <div class="col-card-footer">
@@ -1863,6 +1877,7 @@ function renderGrid(charFilter, gradeFilter){
     document.getElementById('pageInfo').textContent = (currentPage + 1) + ' / ' + totalPages;
   }
 }
+let _clickSaveTimer = null;
 function handleClick(e){
   if(state.clickDone){showToast('오늘 클릭 뽑기는 이미 완료했어요!');return;}
   state.clickCount++;
@@ -1875,8 +1890,13 @@ function handleClick(e){
     state.clickRound = (state.clickRound||0) + 1;
     showToast(`${state.clickRound}번째 100클릭 달성! 뽑기권 +1장!`);
     if(state.clickRound >= 10){ state.clickDone=true; showToast('오늘 클릭 뽑기 완료! 총 10장 획득!'); }
+    clearTimeout(_clickSaveTimer);
+    saveState();
+  } else {
+    clearTimeout(_clickSaveTimer);
+    _clickSaveTimer = setTimeout(saveState, 500);
   }
-  saveState(); updateUI();
+  updateUI();
 }
 
 // 세션 타이머
@@ -2001,7 +2021,7 @@ function openCardList(card) {
         ${myCards.map((oc, i) => {
           const cs = conditionStyle(oc.condition);
           return `<div class="card-list-item" onclick="closeCardList();openZoom(window.getCARDS().find(c=>c.id==='${card.id}'),1,${JSON.stringify(oc).replace(/"/g,'&quot;')})">
-            <img src="${card.img}">
+            <img src="${card.img}" loading="lazy">
             ${cs==='gold'?'<div class="cond-gold-overlay"></div>':''}
             ${cs==='holo'?'<div class="cond-holo-overlay"></div>':''}
             <div class="card-list-cond">${oc.condition}</div>
@@ -2118,6 +2138,7 @@ function closeZoomBtn(){
 // 모달
 // 탭 전환
 function switchTab(tab, btn) {
+  _currentTab = tab;
   document.querySelectorAll('.page-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('mainArea').style.display = 'none';
@@ -2128,6 +2149,7 @@ function switchTab(tab, btn) {
   document.getElementById('tradeSection').classList.remove('show');
   if(tab === 'main') {
     document.getElementById('mainArea').style.display = '';
+    renderGrid();
   } else if(tab === 'synth') {
     document.getElementById('synthSection').classList.add('show');
     setSynthGrade('n', document.querySelector('.synth-grade-filter .col-filter-btn'));
@@ -2190,7 +2212,7 @@ function renderSynthCards() {
     const div = document.createElement('div');
     div.className = 'synth-card grade-' + card.grade + (avail <= 0 ? ' disabled' : '');
     div.innerHTML = `
-      <img src="${card.img}" alt="${card.name}">
+      <img src="${card.img}" alt="${card.name}" loading="lazy">
       <div class="sc-footer">
         <div class="sc-name">${card.name}</div>
         <span class="sc-grade">${GRADE_LABEL[card.grade]}</span>
@@ -2227,7 +2249,7 @@ function updateSlotUI() {
     const slot = document.getElementById('slot' + i);
     if(card) {
       slot.innerHTML = `
-        <img src="${card.img}" alt="${card.name}" style="width:100%;height:100%;object-fit:cover;object-position:center 30%;border-radius:10px;">
+        <img src="${card.img}" alt="${card.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center 30%;border-radius:10px;">
         <span class="slot-grade" style="background:${getGradeColor(card.grade)};color:white;position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:0.6rem;font-weight:900;padding:1px 6px;border-radius:99px;">${GRADE_LABEL[card.grade]}</span>
         <button class="slot-remove" onclick="event.stopPropagation();removeSlot(${i})">×</button>
       `;
@@ -2419,7 +2441,7 @@ function draw10Cards() {
   }
   saveState(); updateUI(); renderGrid();
 
-  // 결과 그리드 렌더
+  // 결과 그리드 렌더 — DocumentFragment로 한 번에 삽입
   const grid = document.getElementById('draw10Grid');
   grid.innerHTML = '';
   const gradeColors = {n:'rgba(80,80,80,0.9)',r:'#1a3a6a',sr:'#2d1b4e',ur:'#3a2800',lg:'linear-gradient(90deg,#ff6b6b,#4d96ff,#c77dff)'};
@@ -2430,6 +2452,9 @@ function draw10Cards() {
     lg:'repeating-linear-gradient(120deg,rgba(255,80,80,0.3) 0%,rgba(255,200,50,0.3) 15%,rgba(80,220,120,0.3) 30%,rgba(80,160,255,0.3) 45%,rgba(180,80,255,0.3) 60%,rgba(255,80,80,0.3) 75%)'
   };
 
+  const cols = window.innerWidth <= 600 ? 2 : 5;
+  const frag = document.createDocumentFragment();
+
   results.forEach(({card, cond}, idx) => {
     const cs = conditionStyle(cond);
     const condBg = cs==='gold' ? '' : cs==='holo' ? 'background:linear-gradient(135deg,#c084fc,#4d96ff);' : 'background:#444;';
@@ -2438,22 +2463,21 @@ function draw10Cards() {
     const hasAurora = ['sr','ur','lg'].includes(card.grade);
     const lgBorder = card.grade==='lg' ? 'box-shadow:0 0 0 2px #ffd700,0 4px 16px rgba(255,215,0,0.5);' : '';
 
-    // 카드 위치에서 중앙까지 방향 계산 (5열 기준, 모바일 2열)
-    const cols = window.innerWidth <= 600 ? 2 : 5;
     const col = idx % cols;
     const row = Math.floor(idx / cols);
-    const totalCols = cols;
-    const cx = col - (totalCols - 1) / 2;
+    const cx = col - (cols - 1) / 2;
     const cy = row - 1;
     const bx = Math.round(-cx * 220);
     const by = Math.round(-cy * 280);
     const br = Math.round(cx * 18);
+    const delay = idx * 80;
 
     const div = document.createElement('div');
     div.className = 'draw10-card grade-' + card.grade;
-    div.style.cssText = lgBorder + `--bx:${bx}px;--by:${by}px;--br:${br}deg;`;
+    // CSS animation-delay로 JS setTimeout 중첩 제거
+    div.style.cssText = lgBorder + `--bx:${bx}px;--by:${by}px;--br:${br}deg;animation:cardBurst 0.55s cubic-bezier(.17,.67,.35,1.2) ${delay}ms forwards;`;
     div.innerHTML = `
-      <img src="${card.img}" alt="${card.name}">
+      <img src="${card.img}" alt="${card.name}" loading="lazy">
       <div class="d10-header">
         <span class="d10-name">${card.name}</span>
         <span class="d10-grade" style="background:${gradeColors[card.grade]};color:${gradeTextColors[card.grade]}">${GRADE_LABEL[card.grade]}</span>
@@ -2461,26 +2485,20 @@ function draw10Cards() {
       ${hasAurora ? `<div class="d10-aurora" style="background:${auroraMap[card.grade]};background-size:200% 200%;animation:colAuroraSR ${card.grade==='lg'?'2':'3'}s ease-in-out infinite;${card.grade==='lg'?'opacity:0.7;':''}"></div>` : ''}
       <div class="d10-cond ${condClass}" style="${condBg}color:${condColor};">${cond}</div>
     `;
+    div.addEventListener('animationend', () => div.classList.add('burst-done'), { once: true });
     div.onclick = () => {
       const oc = state.ownedCards.filter(c=>c.id===card.id).slice(-1)[0];
       openZoom(card, state.ownedCards.filter(c=>c.id===card.id).length, oc);
     };
-    grid.appendChild(div);
+    frag.appendChild(div);
 
-    // 순서대로 터져나오는 딜레이
-    const delay = idx * 80;
-    setTimeout(() => {
-      div.style.animation = `cardBurst 0.55s cubic-bezier(.17,.67,.35,1.2) forwards`;
-      div.style.animationDelay = '0ms';
-      setTimeout(() => div.classList.add('burst-done'), 560);
-    }, delay);
-
-    // SR이상 플래시는 해당 카드 터질 때
+    // SR이상 플래시
     if(card.grade==='lg') setTimeout(()=>gradeFlash('lg'), delay+200);
     else if(card.grade==='ur') setTimeout(()=>gradeFlash('ur'), delay+200);
     else if(card.grade==='sr') setTimeout(()=>gradeFlash('sr'), delay+200);
   });
 
+  grid.appendChild(frag); // DOM 삽입 1회
   document.getElementById('draw10Overlay').classList.add('show');
 }
 
@@ -2640,7 +2658,7 @@ function renderDex() {
           return `
             <div class="dex-card grade-${card.grade} ${locked ? 'dex-locked' : ''}"
               onclick="${locked ? '' : `openZoom(CARDS.find(c=>c.id==='${card.id}'),${cnt})`}">
-              ${locked ? '' : `<img src="${card.img}" alt="${card.name}">`}
+              ${locked ? '' : `<img src="${card.img}" alt="${card.name}" loading="lazy">`}
               ${cnt > 1 ? `<div class="dex-dup">×${cnt}</div>` : ''}
               <div class="dex-card-footer" style="display:block!important;">
                 <span class="dex-grade-badge" style="${gradeBg}color:${gradeTextColors[card.grade]};">${GRADE_LABEL[card.grade]}</span>
@@ -2702,7 +2720,7 @@ window.loadPosts = async function() {
       el.innerHTML = `
         ${d.cardImg
           ? `<div class="comm-post-card" style="position:relative;">
-               <img src="${d.cardImg}">
+               <img src="${d.cardImg}" loading="lazy">
                ${hasHolo ? `<div style="position:absolute;inset:0;background:${auroraStyles[d.cardGrade]};background-size:200% 200%;animation:colAuroraSR 3s ease-in-out infinite;mix-blend-mode:screen;border-radius:6px;"></div>` : ''}
                ${d.cardCondition ? `<div style="position:absolute;bottom:3px;right:3px;width:18px;height:18px;border-radius:50%;background:${condBg};color:${condColor};font-family:Nunito,sans-serif;font-weight:900;font-size:10px;display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(255,255,255,0.5);">${d.cardCondition}</div>` : ''}
              </div>`
@@ -2739,7 +2757,7 @@ window.openPostDetail = function(d, docId, timeStr) {
     const detailCondColor = d.cardCondition >= 9 ? '#7a4a00' : 'white';
     document.getElementById('postDetailCard').innerHTML = `
       <div class="post-detail-card-wrap" id="postDetailCardWrap">
-        <img src="${d.cardImg}">
+        <img src="${d.cardImg}" loading="lazy">
         ${hasHolo ? `<div class="post-detail-holo" id="postDetailHolo" style="background:${auroraStyles[d.cardGrade]};background-size:200% 200%;${d.cardGrade==='lg'?'opacity:0.6;animation:colAuroraLG 2s linear infinite;':''}"></div>` : ''}
         ${d.cardCondition ? `<div style="position:absolute;bottom:6px;right:6px;width:26px;height:26px;border-radius:50%;background:${detailCondBg};color:${detailCondColor};font-family:Nunito,sans-serif;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.6);z-index:5;">${d.cardCondition}</div>` : ''}
       </div>`;
@@ -2848,7 +2866,7 @@ window.openPostModal = function() {
       const cs = window.conditionStyle ? window.conditionStyle(oc.condition) : (oc.condition>=9?'gold':oc.condition>=6?'holo':'normal');
       const badgeBg = cs==='gold'?'linear-gradient(135deg,#ffd700,#ffaa00)':cs==='holo'?'linear-gradient(135deg,#c084fc,#4d96ff)':'rgba(0,0,0,0.65)';
       const badgeColor = cs==='gold'?'#7a4a00':'white';
-      el.innerHTML = `<img src="${card.img}" alt="${card.name}">
+      el.innerHTML = `<img src="${card.img}" alt="${card.name}" loading="lazy">
         <div style="position:absolute;bottom:3px;right:3px;width:18px;height:18px;border-radius:50%;background:${badgeBg};color:${badgeColor};font-family:Nunito,sans-serif;font-weight:900;font-size:10px;display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(255,255,255,0.5);">${oc.condition}</div>`;
       el.onclick = () => {
         document.querySelectorAll('.post-card-item').forEach(i => i.classList.remove('selected'));
@@ -2932,7 +2950,7 @@ window.renderTradeCardGrid = function(grade) {
     const el = document.createElement('div');
     el.className = 'trade-modal-card-item';
     el.dataset.uid = oc.uid;
-    el.innerHTML = `<img src="${card.img}" alt="${card.name}">
+    el.innerHTML = `<img src="${card.img}" alt="${card.name}" loading="lazy">
       <div class="trade-modal-cond" style="background:${badgeBg};color:${badgeColor};">${oc.condition}</div>`;
     el.onclick = () => {
       document.querySelectorAll('.trade-modal-card-item').forEach(i=>i.classList.remove('selected'));
@@ -3030,7 +3048,7 @@ window.loadTrades = async function() {
       el.className = 'trade-item';
       el.innerHTML = `
         <div class="trade-card-thumb">
-          <img src="${d.cardImg}" alt="${d.cardName}">
+          <img src="${d.cardImg}" alt="${d.cardName}" loading="lazy">
           ${hasHolo ? `<div class="trade-card-holo" style="background:${auroraStylesT[d.cardGrade]};animation:colAuroraSR 3s ease-in-out infinite;opacity:0.8;"></div>` : ''}
           <div class="trade-cond-badge" style="background:${condBg};color:${condColor};">${d.condition}</div>
         </div>
